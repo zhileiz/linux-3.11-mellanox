@@ -35,7 +35,13 @@
 
 #include <rdma/ib_verbs.h>
 #include <linux/mlx5/driver.h>
-#include <linux/refcount.h>
+// #include <linux/refcount.h>
+#include <uapi/linux/if_ether.h>
+
+typedef struct refcount_struct {
+	atomic_t refs;
+} refcount_t;
+
 
 struct mlx5_core_cq {
 	u32			cqn;
