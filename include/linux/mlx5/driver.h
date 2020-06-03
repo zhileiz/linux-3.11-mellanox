@@ -50,8 +50,25 @@
 #include <linux/mlx5/device.h>
 #include <linux/mlx5/doorbell.h>
 #include <linux/mlx5/srq.h>
-#include <linux/timecounter.h>
+//#include <linux/clocksource.h>
+#include <linux/net_tstamp.h>
+#include <linux/irqdesc.h>
 #include <linux/ptp_clock_kernel.h>
+
+
+enum ib_sig_err_type {
+	IB_SIG_BAD_GUARD,
+	IB_SIG_BAD_REFTAG,
+	IB_SIG_BAD_APPTAG,
+};
+
+struct ib_sig_err {
+	enum ib_sig_err_type	err_type;
+	u32			expected;
+	u32			actual;
+	u64			sig_err_offset;
+	u32			key;
+};
 
 enum {
 	MLX5_BOARD_ID_LEN = 64,
@@ -1246,7 +1263,7 @@ mlx5_get_vector_affinity(struct mlx5_core_dev *dev, int vector)
 #ifdef CONFIG_GENERIC_IRQ_EFFECTIVE_AFF_MASK
 	mask = irq_data_get_effective_affinity_mask(&desc->irq_data);
 #else
-	mask = desc->irq_common_data.affinity;
+	mask = desc->irq_data.affinity;
 #endif
 	return mask;
 }
