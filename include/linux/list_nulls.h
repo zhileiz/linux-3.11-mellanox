@@ -1,5 +1,6 @@
 #ifndef _LINUX_LIST_NULLS_H
 #define _LINUX_LIST_NULLS_H
+#define NULLS_MARKER(value) (1UL | (((long)value) << 1))
 
 /*
  * Special version of lists, where end of list is not a NULL pointer,

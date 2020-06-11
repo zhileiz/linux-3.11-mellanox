@@ -37,6 +37,7 @@
 #include <linux/if_link.h>
 #include <net/devlink.h>
 #include <linux/mlx5/device.h>
+#include <linux/hashtable.h>
 #include "lib/mpfs.h"
 
 enum {

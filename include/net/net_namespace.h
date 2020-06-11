@@ -243,6 +243,13 @@ static inline void release_net(struct net *net)
 }
 #endif
 
+
+typedef struct {
+#ifdef CONFIG_NET_NS
+	struct net *net;
+#endif
+} possible_net_t;
+
 #ifdef CONFIG_NET_NS
 
 static inline void write_pnet(struct net **pnet, struct net *net)
