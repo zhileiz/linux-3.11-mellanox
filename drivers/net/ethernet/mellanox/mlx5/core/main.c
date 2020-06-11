@@ -630,8 +630,9 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
 		return -ENOMEM;
 	}
 
-	cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
-			priv->irq_info[i].mask);
+	// fix: https://elixir.bootlin.com/linux/v4.15/source/include/linux/cpumask.h#L164
+	// original: cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node)
+	cpumask_set_cpu(0, priv->irq_info[i].mask);
 
 	if (IS_ENABLED(CONFIG_SMP) &&
 	    irq_set_affinity_hint(irq, priv->irq_info[i].mask))
