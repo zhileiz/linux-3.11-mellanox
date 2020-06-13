@@ -846,7 +846,7 @@ static void cmd_work_handler(struct work_struct *work)
 	lay->status_own = CMD_OWNER_HW;
 	set_signature(ent, !cmd->checksum_disabled);
 	dump_command(dev, ent, 1);
-	ent->ts1 = ktime_get_ns();
+	ent->ts1 = ktime_to_ns(ktime_get());
 
 	if (ent->callback)
 		schedule_delayed_work(&ent->cb_timeout_work, cb_timeout);
@@ -1455,7 +1455,7 @@ void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, u64 vec, bool forced)
 				sem = &cmd->pages_sem;
 			else
 				sem = &cmd->sem;
-			ent->ts2 = ktime_get_ns();
+			ent->ts2 = ktime_to_ns(ktime_get());
 			memcpy(ent->out->first.data, ent->lay->out, sizeof(ent->lay->out));
 			dump_command(dev, ent, 0);
 			if (!ent->ret) {
