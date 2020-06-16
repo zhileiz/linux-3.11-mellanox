@@ -279,7 +279,7 @@ static int give_pages(struct mlx5_core_dev *dev, u16 func_id, int npages,
 	int i;
 
 	inlen += npages * MLX5_FLD_SZ_BYTES(manage_pages_in, pas[0]);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		mlx5_core_warn(dev, "vzalloc failed %d\n", inlen);
@@ -318,14 +318,14 @@ retry:
 
 	mlx5_core_dbg(dev, "err %d\n", err);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return 0;
 
 out_4k:
 	for (i--; i >= 0; i--)
 		free_4k(dev, MLX5_GET64(manage_pages_in, in, pas[i]));
 out_free:
-	kvfree(in);
+	kvfree_mlx5(in);
 	if (notify_fail)
 		page_notify_fail(dev, func_id);
 	return err;
@@ -376,7 +376,7 @@ static int reclaim_pages(struct mlx5_core_dev *dev, u32 func_id, int npages,
 		*nclaimed = 0;
 
 	outlen += npages * MLX5_FLD_SZ_BYTES(manage_pages_out, pas[0]);
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -411,7 +411,7 @@ static int reclaim_pages(struct mlx5_core_dev *dev, u32 func_id, int npages,
 		dev->priv.vfs_pages -= num_claimed;
 
 out_free:
-	kvfree(out);
+	kvfree_mlx5(out);
 	return err;
 }
 

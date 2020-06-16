@@ -24,6 +24,13 @@
 #define wmb()	asm volatile("sfence" ::: "memory")
 #endif
 
+#ifdef CONFIG_X86_PPRO_FENCE
+#define dma_rmb()	rmb()
+#else
+#define dma_rmb()	barrier()
+#endif
+#define dma_wmb()	barrier()
+
 /**
  * read_barrier_depends - Flush all pending reads that subsequents reads
  * depend on.

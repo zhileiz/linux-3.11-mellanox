@@ -401,6 +401,55 @@ struct address_space *page_mapping(struct page *page)
 	return mapping;
 }
 
+void *kvmalloc_node(size_t size, gfp_t flags, int node)
+{
+       gfp_t kmalloc_flags = flags;
+       void *ret;
+
+       /*
+        * vmalloc uses GFP_KERNEL for some internal allocations (e.g page tables)
+        * so the given set of flags has to be compatible.
+        */
+       WARN_ON_ONCE((flags & GFP_KERNEL) != GFP_KERNEL);
+
+       /*
+        * We want to attempt a large physically contiguous block first because
+        * it is less likely to fragment multiple larger blocks and therefore
+        * contribute to a long term fragmentation less than vmalloc fallback.
+        * However make sure that larger requests are not too disruptive - no
+        * OOM killer and no allocation failure warnings as we have a fallback.
+        */
+       if (size > PAGE_SIZE) {
+               kmalloc_flags |= __GFP_NOWARN;
+
+               if (!(kmalloc_flags & __GFP_RETRY_MAYFAIL))
+                       kmalloc_flags |= __GFP_NORETRY;
+       }
+
+       ret = kmalloc_node(size, kmalloc_flags, node);
+
+       /*
+        * It doesn't really make sense to fallback to vmalloc for sub page
+        * requests
+        */
+       if (ret || size <= PAGE_SIZE)
+               return ret;
+
+       return __vmalloc_node_flags_caller(size, node, flags,
+                       __builtin_return_address(0));
+}
+EXPORT_SYMBOL(kvmalloc_node);
+
+void kvfree_mlx5(const void *addr)
+{
+       if (is_vmalloc_addr(addr))
+               vfree(addr);
+       else
+               kfree(addr);
+}
+EXPORT_SYMBOL(kvfree_mlx5);
+
+
 /* Tracepoints definitions. */
 EXPORT_TRACEPOINT_SYMBOL(kmalloc);
 EXPORT_TRACEPOINT_SYMBOL(kmem_cache_alloc);

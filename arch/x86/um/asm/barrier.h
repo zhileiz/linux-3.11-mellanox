@@ -59,6 +59,14 @@
 
 #endif /* CONFIG_SMP */
 
+
+#ifdef CONFIG_X86_PPRO_FENCE
+#define dma_rmb()	rmb()
+#else /* CONFIG_X86_PPRO_FENCE */
+#define dma_rmb()	barrier()
+#endif /* CONFIG_X86_PPRO_FENCE */
+#define dma_wmb()	barrier()
+
 /*
  * Stop RDTSC speculation. This is needed when you need to use RDTSC
  * (or get_cycles or vread that possibly accesses the TSC) in a defined

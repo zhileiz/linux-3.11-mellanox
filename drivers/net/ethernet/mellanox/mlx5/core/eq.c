@@ -573,7 +573,7 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
 	inlen = MLX5_ST_SZ_BYTES(create_eq_in) +
 		MLX5_FLD_SZ_BYTES(create_eq_in, pas[0]) * eq->buf.npages;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		goto err_buf;
@@ -631,7 +631,7 @@ int mlx5_create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq, u8 vecidx,
 	 */
 	eq_update_ci(eq, 1);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return 0;
 
 err_irq:
@@ -641,7 +641,7 @@ err_eq:
 	mlx5_cmd_destroy_eq(dev, eq->eqn);
 
 err_in:
-	kvfree(in);
+	kvfree_mlx5(in);
 
 err_buf:
 	mlx5_buf_free(dev, &eq->buf);

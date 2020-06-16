@@ -109,6 +109,9 @@ static inline void init_timer_on_stack_key(struct timer_list *timer,
 }
 #endif
 
+#define from_timer(var, callback_timer, timer_fieldname) \
+        container_of(callback_timer, typeof(*var), timer_fieldname)
+
 #ifdef CONFIG_LOCKDEP
 #define __init_timer(_timer, _flags)					\
 	do {								\
@@ -155,6 +158,23 @@ static inline void init_timer_on_stack_key(struct timer_list *timer,
 	__setup_timer_on_stack((timer), (fn), (data), 0)
 #define setup_deferrable_timer_on_stack(timer, fn, data)		\
 	__setup_timer_on_stack((timer), (fn), (data), TIMER_DEFERRABLE)
+
+/**
+ * timer_setup - prepare a timer for first use
+ * @timer: the timer in question
+ * @callback: the function to call when timer expires
+ * @flags: any TIMER_* flags
+ *
+ * Regular timer initialization should use either DEFINE_TIMER() above,
+ * or timer_setup(). For timers on the stack, timer_setup_on_stack() must
+ * be used and must be balanced with a call to destroy_timer_on_stack().
+ */
+#define timer_setup(timer, callback, flags)			\
+	__init_timer((timer), (callback), (flags))
+
+#define timer_setup_on_stack(timer, callback, flags)		\
+	__init_timer_on_stack((timer), (callback), (flags))
+
 
 /**
  * timer_pending - is a timer pending?
