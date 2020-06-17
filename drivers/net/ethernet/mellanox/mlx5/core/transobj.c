@@ -284,7 +284,7 @@ int mlx5_core_arm_rmp(struct mlx5_core_dev *dev, u32 rmpn, u16 lwm)
 	void *bitmask;
 	int  err;
 
-	in = kvzalloc(MLX5_ST_SZ_BYTES(modify_rmp_in), GFP_KERNEL);
+	in = kvzalloc_mlx5(MLX5_ST_SZ_BYTES(modify_rmp_in), GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -300,7 +300,7 @@ int mlx5_core_arm_rmp(struct mlx5_core_dev *dev, u32 rmpn, u16 lwm)
 
 	err =  mlx5_core_modify_rmp(dev, in, MLX5_ST_SZ_BYTES(modify_rmp_in));
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }

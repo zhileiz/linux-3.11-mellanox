@@ -162,7 +162,7 @@ static int create_srq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 
 	pas_size  = get_pas_size(in);
 	inlen	  = MLX5_ST_SZ_BYTES(create_srq_in) + pas_size;
-	create_in = kvzalloc(inlen, GFP_KERNEL);
+	create_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!create_in)
 		return -ENOMEM;
 
@@ -177,7 +177,7 @@ static int create_srq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 
 	err = mlx5_cmd_exec(dev, create_in, inlen, create_out,
 			    sizeof(create_out));
-	kvfree(create_in);
+	kvfree_mlx5(create_in);
 	if (!err)
 		srq->srqn = MLX5_GET(create_srq_out, create_out, srqn);
 
@@ -221,7 +221,7 @@ static int query_srq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 	void *srqc;
 	int err;
 
-	srq_out = kvzalloc(MLX5_ST_SZ_BYTES(query_srq_out), GFP_KERNEL);
+	srq_out = kvzalloc_mlx5(MLX5_ST_SZ_BYTES(query_srq_out), GFP_KERNEL);
 	if (!srq_out)
 		return -ENOMEM;
 
@@ -238,7 +238,7 @@ static int query_srq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 	if (MLX5_GET(srqc, srqc, state) != MLX5_SRQC_STATE_GOOD)
 		out->flags |= MLX5_SRQ_FLAG_ERR;
 out:
-	kvfree(srq_out);
+	kvfree_mlx5(srq_out);
 	return err;
 }
 
@@ -256,7 +256,7 @@ static int create_xrc_srq_cmd(struct mlx5_core_dev *dev,
 
 	pas_size  = get_pas_size(in);
 	inlen	  = MLX5_ST_SZ_BYTES(create_xrc_srq_in) + pas_size;
-	create_in = kvzalloc(inlen, GFP_KERNEL);
+	create_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!create_in)
 		return -ENOMEM;
 
@@ -278,7 +278,7 @@ static int create_xrc_srq_cmd(struct mlx5_core_dev *dev,
 
 	srq->srqn = MLX5_GET(create_xrc_srq_out, create_out, xrc_srqn);
 out:
-	kvfree(create_in);
+	kvfree_mlx5(create_in);
 	return err;
 }
 
@@ -320,7 +320,7 @@ static int query_xrc_srq_cmd(struct mlx5_core_dev *dev,
 	void *xrc_srqc;
 	int err;
 
-	xrcsrq_out = kvzalloc(MLX5_ST_SZ_BYTES(query_xrc_srq_out), GFP_KERNEL);
+	xrcsrq_out = kvzalloc_mlx5(MLX5_ST_SZ_BYTES(query_xrc_srq_out), GFP_KERNEL);
 	if (!xrcsrq_out)
 		return -ENOMEM;
 	memset(xrcsrq_in, 0, sizeof(xrcsrq_in));
@@ -341,7 +341,7 @@ static int query_xrc_srq_cmd(struct mlx5_core_dev *dev,
 		out->flags |= MLX5_SRQ_FLAG_ERR;
 
 out:
-	kvfree(xrcsrq_out);
+	kvfree_mlx5(xrcsrq_out);
 	return err;
 }
 
@@ -357,7 +357,7 @@ static int create_rmp_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 
 	pas_size = get_pas_size(in);
 	inlen = MLX5_ST_SZ_BYTES(create_rmp_in) + pas_size;
-	create_in = kvzalloc(inlen, GFP_KERNEL);
+	create_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!create_in)
 		return -ENOMEM;
 
@@ -370,7 +370,7 @@ static int create_rmp_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 
 	err = mlx5_core_create_rmp(dev, create_in, inlen, &srq->srqn);
 
-	kvfree(create_in);
+	kvfree_mlx5(create_in);
 	return err;
 }
 
@@ -390,7 +390,7 @@ static int arm_rmp_cmd(struct mlx5_core_dev *dev,
 	void *bitmask;
 	int err;
 
-	in = kvzalloc(MLX5_ST_SZ_BYTES(modify_rmp_in), GFP_KERNEL);
+	in = kvzalloc_mlx5(MLX5_ST_SZ_BYTES(modify_rmp_in), GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -406,7 +406,7 @@ static int arm_rmp_cmd(struct mlx5_core_dev *dev,
 
 	err = mlx5_core_modify_rmp(dev, in, MLX5_ST_SZ_BYTES(modify_rmp_in));
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -417,7 +417,7 @@ static int query_rmp_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 	void *rmpc;
 	int err;
 
-	rmp_out =  kvzalloc(MLX5_ST_SZ_BYTES(query_rmp_out), GFP_KERNEL);
+	rmp_out =  kvzalloc_mlx5(MLX5_ST_SZ_BYTES(query_rmp_out), GFP_KERNEL);
 	if (!rmp_out)
 		return -ENOMEM;
 
@@ -431,7 +431,7 @@ static int query_rmp_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 		out->flags |= MLX5_SRQ_FLAG_ERR;
 
 out:
-	kvfree(rmp_out);
+	kvfree_mlx5(rmp_out);
 	return err;
 }
 
@@ -448,7 +448,7 @@ static int create_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 
 	pas_size = get_pas_size(in);
 	inlen = MLX5_ST_SZ_BYTES(create_xrq_in) + pas_size;
-	create_in = kvzalloc(inlen, GFP_KERNEL);
+	create_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!create_in)
 		return -ENOMEM;
 
@@ -471,7 +471,7 @@ static int create_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 	MLX5_SET(create_xrq_in, create_in, opcode, MLX5_CMD_OP_CREATE_XRQ);
 	err = mlx5_cmd_exec(dev, create_in, inlen, create_out,
 			    sizeof(create_out));
-	kvfree(create_in);
+	kvfree_mlx5(create_in);
 	if (!err)
 		srq->srqn = MLX5_GET(create_xrq_out, create_out, xrqn);
 
@@ -513,7 +513,7 @@ static int query_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 	void *xrqc;
 	int err;
 
-	xrq_out = kvzalloc(outlen, GFP_KERNEL);
+	xrq_out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!xrq_out)
 		return -ENOMEM;
 
@@ -539,7 +539,7 @@ static int query_xrq_cmd(struct mlx5_core_dev *dev, struct mlx5_core_srq *srq,
 			 tag_matching_topology_context.sw_phase_cnt);
 
 out:
-	kvfree(xrq_out);
+	kvfree_mlx5(xrq_out);
 	return err;
 }
 

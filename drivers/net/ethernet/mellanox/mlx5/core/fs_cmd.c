@@ -249,7 +249,7 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
 	u32 *in;
 	int err;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -328,7 +328,7 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
 
 	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
 err_out:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 

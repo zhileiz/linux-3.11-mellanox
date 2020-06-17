@@ -552,7 +552,8 @@ enum ib_cq_notify_flags {
 
 enum ib_srq_type {
 	IB_SRQT_BASIC,
-	IB_SRQT_XRC
+	IB_SRQT_XRC,
+	IB_SRQT_TM
 };
 
 enum ib_srq_attr_mask {

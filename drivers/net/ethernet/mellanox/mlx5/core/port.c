@@ -47,8 +47,8 @@ int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
 	u32 *in = NULL;
 	void *data;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
-	out = kvzalloc(outlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!in || !out)
 		goto out;
 
@@ -68,8 +68,8 @@ int mlx5_core_access_reg(struct mlx5_core_dev *dev, void *data_in,
 	memcpy(data_out, data, size_out);
 
 out:
-	kvfree(out);
-	kvfree(in);
+	kvfree_mlx5(out);
+	kvfree_mlx5(in);
 	return err;
 }
 EXPORT_SYMBOL_GPL(mlx5_core_access_reg);
@@ -466,7 +466,7 @@ int mlx5_core_query_ib_ppcnt(struct mlx5_core_dev *dev,
 	u32 *in;
 	int err;
 
-	in  = kvzalloc(sz, GFP_KERNEL);
+	in  = kvzalloc_mlx5(sz, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		return err;
@@ -478,7 +478,7 @@ int mlx5_core_query_ib_ppcnt(struct mlx5_core_dev *dev,
 	err = mlx5_core_access_reg(dev, in, sz, out,
 				   sz, MLX5_REG_PPCNT, 0, 0);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 EXPORT_SYMBOL_GPL(mlx5_core_query_ib_ppcnt);

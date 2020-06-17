@@ -33,7 +33,7 @@
 #ifndef _MLX5_FS_CORE_
 #define _MLX5_FS_CORE_
 
-// #include <linux/refcount.h>
+#include <linux/refcount.h>
 #include <linux/mlx5/fs.h>
 #include <linux/rhashtable.h>
 

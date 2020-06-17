@@ -172,7 +172,7 @@ int mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev,
 	u8 *out_addr;
 	int err;
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -183,7 +183,7 @@ int mlx5_query_nic_vport_mac_address(struct mlx5_core_dev *mdev,
 	if (!err)
 		ether_addr_copy(addr, &out_addr[2]);
 
-	kvfree(out);
+	kvfree_mlx5(out);
 	return err;
 }
 EXPORT_SYMBOL_GPL(mlx5_query_nic_vport_mac_address);
@@ -197,7 +197,7 @@ int mlx5_modify_nic_vport_mac_address(struct mlx5_core_dev *mdev,
 	void *nic_vport_ctx;
 	u8 *perm_mac;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -217,7 +217,7 @@ int mlx5_modify_nic_vport_mac_address(struct mlx5_core_dev *mdev,
 
 	err = mlx5_modify_nic_vport_context(mdev, in, inlen);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }
@@ -229,7 +229,7 @@ int mlx5_query_nic_vport_mtu(struct mlx5_core_dev *mdev, u16 *mtu)
 	u32 *out;
 	int err;
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -238,7 +238,7 @@ int mlx5_query_nic_vport_mtu(struct mlx5_core_dev *mdev, u16 *mtu)
 		*mtu = MLX5_GET(query_nic_vport_context_out, out,
 				nic_vport_context.mtu);
 
-	kvfree(out);
+	kvfree_mlx5(out);
 	return err;
 }
 EXPORT_SYMBOL_GPL(mlx5_query_nic_vport_mtu);
@@ -249,7 +249,7 @@ int mlx5_modify_nic_vport_mtu(struct mlx5_core_dev *mdev, u16 mtu)
 	void *in;
 	int err;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -258,7 +258,7 @@ int mlx5_modify_nic_vport_mtu(struct mlx5_core_dev *mdev, u16 mtu)
 
 	err = mlx5_modify_nic_vport_context(mdev, in, inlen);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 EXPORT_SYMBOL_GPL(mlx5_modify_nic_vport_mtu);
@@ -499,7 +499,7 @@ int mlx5_query_nic_vport_system_image_guid(struct mlx5_core_dev *mdev,
 	u32 *out;
 	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -519,7 +519,7 @@ int mlx5_query_nic_vport_node_guid(struct mlx5_core_dev *mdev, u64 *node_guid)
 	u32 *out;
 	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -549,7 +549,7 @@ int mlx5_modify_nic_vport_node_guid(struct mlx5_core_dev *mdev,
 	if (!MLX5_CAP_ESW(mdev, nic_vport_node_guid_modify))
 		return -EOPNOTSUPP;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -564,7 +564,7 @@ int mlx5_modify_nic_vport_node_guid(struct mlx5_core_dev *mdev,
 
 	err = mlx5_modify_nic_vport_context(mdev, in, inlen);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }
@@ -575,7 +575,7 @@ int mlx5_query_nic_vport_qkey_viol_cntr(struct mlx5_core_dev *mdev,
 	u32 *out;
 	int outlen = MLX5_ST_SZ_BYTES(query_nic_vport_context_out);
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -877,7 +877,7 @@ int mlx5_modify_nic_vport_promisc(struct mlx5_core_dev *mdev,
 	int inlen = MLX5_ST_SZ_BYTES(modify_nic_vport_context_in);
 	int err;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -891,7 +891,7 @@ int mlx5_modify_nic_vport_promisc(struct mlx5_core_dev *mdev,
 
 	err = mlx5_modify_nic_vport_context(mdev, in, inlen);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }
@@ -912,7 +912,7 @@ int mlx5_nic_vport_update_local_lb(struct mlx5_core_dev *mdev, bool enable)
 	    !MLX5_CAP_GEN(mdev, disable_local_lb_uc))
 		return 0;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -935,7 +935,7 @@ int mlx5_nic_vport_update_local_lb(struct mlx5_core_dev *mdev, bool enable)
 		mlx5_core_dbg(mdev, "%s local_lb\n",
 			      enable ? "enable" : "disable");
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 EXPORT_SYMBOL_GPL(mlx5_nic_vport_update_local_lb);
@@ -981,7 +981,7 @@ static int mlx5_nic_vport_update_roce_state(struct mlx5_core_dev *mdev,
 	int inlen = MLX5_ST_SZ_BYTES(modify_nic_vport_context_in);
 	int err;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -991,7 +991,7 @@ static int mlx5_nic_vport_update_roce_state(struct mlx5_core_dev *mdev,
 
 	err = mlx5_modify_nic_vport_context(mdev, in, inlen);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }
@@ -1022,7 +1022,7 @@ int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
 	int	err;
 
 	is_group_manager = MLX5_CAP_GEN(dev, vport_group_manager);
-	in = kvzalloc(in_sz, GFP_KERNEL);
+	in = kvzalloc_mlx5(in_sz, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		return err;
@@ -1044,7 +1044,7 @@ int mlx5_core_query_vport_counter(struct mlx5_core_dev *dev, u8 other_vport,
 
 	err = mlx5_cmd_exec(dev, in, in_sz, out,  out_sz);
 free:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 EXPORT_SYMBOL_GPL(mlx5_core_query_vport_counter);

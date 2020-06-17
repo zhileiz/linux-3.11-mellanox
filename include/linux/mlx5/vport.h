@@ -33,6 +33,8 @@
 #ifndef __MLX5_VPORT_H__
 #define __MLX5_VPORT_H__
 
+#define ETH_ALEN	6		/* Octets in one ethernet addr	 */
+
 #include <linux/mlx5/driver.h>
 #include <linux/mlx5/device.h>
 

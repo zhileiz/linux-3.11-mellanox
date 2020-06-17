@@ -1363,7 +1363,7 @@ static int create_auto_flow_group(struct mlx5_flow_table *ft,
 	int err;
 	u32 *in;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -1383,7 +1383,7 @@ static int create_auto_flow_group(struct mlx5_flow_table *ft,
 		trace_mlx5_fs_add_fg(fg);
 	}
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -2217,7 +2217,7 @@ static struct mlx5_flow_root_namespace *create_root_ns(struct mlx5_flow_steering
 	struct mlx5_flow_namespace *ns;
 
 	/* Create the root namespace */
-	root_ns = kvzalloc(sizeof(*root_ns), GFP_KERNEL);
+	root_ns = kvzalloc_mlx5(sizeof(*root_ns), GFP_KERNEL);
 	if (!root_ns)
 		return NULL;
 
