@@ -47,7 +47,7 @@ void mlx5_init_reserved_gids(struct mlx5_core_dev *dev)
 
 void mlx5_cleanup_reserved_gids(struct mlx5_core_dev *dev)
 {
-	WARN_ON(!ida_is_empty(&dev->roce.reserved_gids.ida));
+	//WARN_ON(!ida_is_empty(&dev->roce.reserved_gids.ida));
 	dev->roce.reserved_gids.start = 0;
 	dev->roce.reserved_gids.count = 0;
 	ida_destroy(&dev->roce.reserved_gids.ida);

@@ -657,7 +657,7 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
 	int ret, i, j;
 	void *out;
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -685,7 +685,7 @@ int mlx5_lag_query_cong_counters(struct mlx5_core_dev *dev,
 
 unlock:
 	mutex_unlock(&lag_mutex);
-	kvfree(out);
+	kvfree_mlx5(out);
 	return ret;
 }
 EXPORT_SYMBOL(mlx5_lag_query_cong_counters);

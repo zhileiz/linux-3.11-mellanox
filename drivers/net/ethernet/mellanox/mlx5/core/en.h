@@ -34,7 +34,7 @@
 
 #include <linux/if_vlan.h>
 #include <linux/etherdevice.h>
-#include <linux/timecounter.h>
+// #include <linux/timecounter.h>
 #include <linux/net_tstamp.h>
 #include <linux/ptp_clock_kernel.h>
 #include <linux/crash_dump.h>
@@ -45,7 +45,8 @@
 #include <linux/mlx5/vport.h>
 #include <linux/mlx5/transobj.h>
 #include <linux/rhashtable.h>
-#include <net/switchdev.h>
+#include <linux/hashtable.h>
+// #include <net/switchdev.h>
 #include "wq.h"
 #include "mlx5_core.h"
 #include "en_stats.h"

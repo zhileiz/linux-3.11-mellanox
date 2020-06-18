@@ -83,6 +83,7 @@ struct ptp_clock_info {
 	int n_alarm;
 	int n_ext_ts;
 	int n_per_out;
+	int n_pins;
 	int pps;
 	int (*adjfreq)(struct ptp_clock_info *ptp, s32 delta);
 	int (*adjtime)(struct ptp_clock_info *ptp, s64 delta);
