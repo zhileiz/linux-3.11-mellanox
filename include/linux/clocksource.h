@@ -87,6 +87,34 @@ static inline u64 cyclecounter_cyc2ns(const struct cyclecounter *cc,
 }
 
 /**
+ * cyclecounter_cyc2ns - converts cycle counter cycles to nanoseconds
+ * @cc:		Pointer to cycle counter.
+ * @cycles:	Cycles
+ * @mask:	bit mask for maintaining the 'frac' field
+ * @frac:	pointer to storage for the fractional nanoseconds.
+ */
+static inline u64 cyclecounter_cyc2ns_mlx5(const struct cyclecounter *cc,
+				      u64 cycles, u64 mask, u64 *frac)
+{
+	u64 ns = (u64) cycles;
+
+	ns = (ns * cc->mult) + *frac;
+	*frac = ns & mask;
+	return ns >> cc->shift;
+}
+
+
+/**
+ * timecounter_adjtime - Shifts the time of the clock.
+ * @delta:	Desired change in nanoseconds.
+ */
+static inline void timecounter_adjtime(struct timecounter *tc, s64 delta)
+{
+	tc->nsec += delta;
+}
+
+
+/**
  * timecounter_init - initialize a time counter
  * @tc:			Pointer to time counter which is to be initialized/reset
  * @cc:			A cycle counter, ready to be used.

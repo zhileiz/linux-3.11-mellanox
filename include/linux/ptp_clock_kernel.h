@@ -24,6 +24,7 @@
 #include <linux/device.h>
 #include <linux/pps_kernel.h>
 #include <linux/ptp_clock.h>
+#include <linux/time64.h>
 
 
 struct ptp_clock_request {
@@ -76,6 +77,40 @@ struct ptp_clock_request {
  * The callbacks must all return zero on success, non-zero otherwise.
  */
 
+struct ptp_pin_desc {
+	/*
+	 * Hardware specific human readable pin name. This field is
+	 * set by the kernel during the PTP_PIN_GETFUNC ioctl and is
+	 * ignored for the PTP_PIN_SETFUNC ioctl.
+	 */
+	char name[64];
+	/*
+	 * Pin index in the range of zero to ptp_clock_caps.n_pins - 1.
+	 */
+	unsigned int index;
+	/*
+	 * Which of the PTP_PF_xxx functions to use on this pin.
+	 */
+	unsigned int func;
+	/*
+	 * The specific channel to use for this function.
+	 * This corresponds to the 'index' field of the
+	 * PTP_EXTTS_REQUEST and PTP_PEROUT_REQUEST ioctls.
+	 */
+	unsigned int chan;
+	/*
+	 * Reserved for future use.
+	 */
+	unsigned int rsv[5];
+};
+
+enum ptp_pin_function {
+	PTP_PF_NONE,
+	PTP_PF_EXTTS,
+	PTP_PF_PEROUT,
+	PTP_PF_PHYSYNC,
+};
+
 struct ptp_clock_info {
 	struct module *owner;
 	char name[16];
@@ -85,15 +120,18 @@ struct ptp_clock_info {
 	int n_per_out;
 	int n_pins;
 	int pps;
+	struct ptp_pin_desc *pin_config;
 	int (*adjfreq)(struct ptp_clock_info *ptp, s32 delta);
 	int (*adjtime)(struct ptp_clock_info *ptp, s64 delta);
 	int (*gettime)(struct ptp_clock_info *ptp, struct timespec *ts);
 	int (*settime)(struct ptp_clock_info *ptp, const struct timespec *ts);
+	int (*gettime64)(struct ptp_clock_info *ptp, struct timespec64 *ts);
+	int (*settime64)(struct ptp_clock_info *p, const struct timespec64 *ts);
+	int (*verify)(struct ptp_clock_info *ptp, unsigned int pin,
+		      enum ptp_pin_function func, unsigned int chan);
 	int (*enable)(struct ptp_clock_info *ptp,
 		      struct ptp_clock_request *request, int on);
 };
-
-struct ptp_clock;
 
 /**
  * ptp_clock_register() - register a PTP hardware clock driver

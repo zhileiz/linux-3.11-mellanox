@@ -31,6 +31,8 @@
  */
 
 #include <linux/clocksource.h>
+#include <linux/time64.h>
+#include <linux/posix-clock.h>
 #include "en.h"
 
 enum {
@@ -182,6 +184,50 @@ static int mlx5_ptp_adjfreq(struct ptp_clock_info *ptp, s32 delta)
 	write_unlock_irqrestore(&clock->lock, flags);
 
 	return 0;
+}
+
+#define PTP_MAX_TIMESTAMPS 128
+
+struct timestamp_event_queue {
+	struct ptp_extts_event buf[PTP_MAX_TIMESTAMPS];
+	int head;
+	int tail;
+	spinlock_t lock;
+};
+
+struct ptp_clock {
+	struct posix_clock clock;
+	struct device *dev;
+	struct ptp_clock_info *info;
+	dev_t devid;
+	int index; /* index into clocks.map */
+	struct pps_device *pps_source;
+	long dialed_frequency; /* remembers the frequency adjustment */
+	struct timestamp_event_queue tsevq; /* simple fifo for time stamps */
+	struct mutex tsevq_mux; /* one process at a time reading the fifo */
+	struct mutex pincfg_mux; /* protect concurrent info->pin_config access */
+	wait_queue_head_t tsev_wq;
+	int defunct; /* tells readers to go away when clock is being removed */
+};
+
+
+int ptp_find_pin(struct ptp_clock *ptp,
+		 enum ptp_pin_function func, unsigned int chan)
+{
+	struct ptp_pin_desc *pin = NULL;
+	int i;
+
+	mutex_lock(&ptp->pincfg_mux);
+	for (i = 0; i < ptp->info->n_pins; i++) {
+		if (ptp->info->pin_config[i].func == func &&
+		    ptp->info->pin_config[i].chan == chan) {
+			pin = &ptp->info->pin_config[i];
+			break;
+		}
+	}
+	mutex_unlock(&ptp->pincfg_mux);
+
+	return pin ? i : -1;
 }
 
 static int mlx5_extts_configure(struct ptp_clock_info *ptp,
@@ -481,7 +527,7 @@ void mlx5_init_clock(struct mlx5_core_dev *mdev)
 	/* Calculate period in seconds to call the overflow watchdog - to make
 	 * sure counter is checked at least once every wrap around.
 	 */
-	ns = cyclecounter_cyc2ns(&clock->cycles, clock->cycles.mask,
+	ns = cyclecounter_cyc2ns_mlx5(&clock->cycles, clock->cycles.mask,
 				 frac, &frac);
 	do_div(ns, NSEC_PER_SEC / 2 / HZ);
 	clock->overflow_period = ns;
