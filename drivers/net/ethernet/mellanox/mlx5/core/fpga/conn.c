@@ -227,7 +227,7 @@ static int mlx5_fpga_conn_create_mkey(struct mlx5_core_dev *mdev, u32 pdn,
 	u32 *in;
 	int err;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -242,7 +242,7 @@ static int mlx5_fpga_conn_create_mkey(struct mlx5_core_dev *mdev, u32 pdn,
 
 	err = mlx5_core_create_mkey(mdev, mkey, in, inlen);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -455,7 +455,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
 
 	inlen = MLX5_ST_SZ_BYTES(create_cq_in) +
 		sizeof(u64) * conn->cq.wq_ctrl.frag_buf.npages;
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		goto err_cqwq;
@@ -477,7 +477,7 @@ static int mlx5_fpga_conn_create_cq(struct mlx5_fpga_conn *conn, int cq_size)
 	mlx5_fill_page_frag_array(&conn->cq.wq_ctrl.frag_buf, pas);
 
 	err = mlx5_core_create_cq(mdev, &conn->cq.mcq, in, inlen);
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	if (err)
 		goto err_cqwq;
@@ -549,14 +549,14 @@ static int mlx5_fpga_conn_create_qp(struct mlx5_fpga_conn *conn,
 	if (err)
 		goto out;
 
-	conn->qp.rq.bufs = kvzalloc(sizeof(conn->qp.rq.bufs[0]) *
+	conn->qp.rq.bufs = kvzalloc_mlx5(sizeof(conn->qp.rq.bufs[0]) *
 				    conn->qp.rq.size, GFP_KERNEL);
 	if (!conn->qp.rq.bufs) {
 		err = -ENOMEM;
 		goto err_wq;
 	}
 
-	conn->qp.sq.bufs = kvzalloc(sizeof(conn->qp.sq.bufs[0]) *
+	conn->qp.sq.bufs = kvzalloc_mlx5(sizeof(conn->qp.sq.bufs[0]) *
 				    conn->qp.sq.size, GFP_KERNEL);
 	if (!conn->qp.sq.bufs) {
 		err = -ENOMEM;
@@ -566,7 +566,7 @@ static int mlx5_fpga_conn_create_qp(struct mlx5_fpga_conn *conn,
 	inlen = MLX5_ST_SZ_BYTES(create_qp_in) +
 		MLX5_FLD_SZ_BYTES(create_qp_in, pas[0]) *
 		conn->qp.wq_ctrl.buf.npages;
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		goto err_sq_bufs;
@@ -604,13 +604,13 @@ static int mlx5_fpga_conn_create_qp(struct mlx5_fpga_conn *conn,
 	goto out;
 
 err_sq_bufs:
-	kvfree(conn->qp.sq.bufs);
+	kvfree_mlx5(conn->qp.sq.bufs);
 err_rq_bufs:
-	kvfree(conn->qp.rq.bufs);
+	kvfree_mlx5(conn->qp.rq.bufs);
 err_wq:
 	mlx5_wq_destroy(&conn->qp.wq_ctrl);
 out:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -655,8 +655,8 @@ static void mlx5_fpga_conn_destroy_qp(struct mlx5_fpga_conn *conn)
 	mlx5_core_destroy_qp(conn->fdev->mdev, &conn->qp.mqp);
 	mlx5_fpga_conn_free_recv_bufs(conn);
 	mlx5_fpga_conn_flush_send_bufs(conn);
-	kvfree(conn->qp.sq.bufs);
-	kvfree(conn->qp.rq.bufs);
+	kvfree_mlx5(conn->qp.sq.bufs);
+	kvfree_mlx5(conn->qp.rq.bufs);
 	mlx5_wq_destroy(&conn->qp.wq_ctrl);
 }
 

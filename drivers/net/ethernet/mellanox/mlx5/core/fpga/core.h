@@ -57,15 +57,15 @@ struct mlx5_fpga_device {
 
 #define mlx5_fpga_dbg(__adev, format, ...) \
 	dev_dbg(&(__adev)->mdev->pdev->dev, "FPGA: %s:%d:(pid %d): " format, \
-		 __func__, __LINE__, current->pid, ##__VA_ARGS__)
+		 __func__, __LINE__, 5717, ##__VA_ARGS__)
 
 #define mlx5_fpga_err(__adev, format, ...) \
 	dev_err(&(__adev)->mdev->pdev->dev, "FPGA: %s:%d:(pid %d): " format, \
-		__func__, __LINE__, current->pid, ##__VA_ARGS__)
+		__func__, __LINE__, 5717, ##__VA_ARGS__)
 
 #define mlx5_fpga_warn(__adev, format, ...) \
 	dev_warn(&(__adev)->mdev->pdev->dev, "FPGA: %s:%d:(pid %d): " format, \
-		__func__, __LINE__, current->pid, ##__VA_ARGS__)
+		__func__, __LINE__, 5717, ##__VA_ARGS__)
 
 #define mlx5_fpga_warn_ratelimited(__adev, format, ...) \
 	dev_warn_ratelimited(&(__adev)->mdev->pdev->dev, "FPGA: %s:%d: " \

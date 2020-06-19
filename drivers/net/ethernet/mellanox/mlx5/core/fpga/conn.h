@@ -41,6 +41,20 @@
 #include "fpga/sdk.h"
 #include "wq.h"
 
+static inline void addrconf_addr_eui48_base(u8 *eui, const char *const addr)
+{
+	memcpy(eui, addr, 3);
+	eui[3] = 0xFF;
+	eui[4] = 0xFE;
+	memcpy(eui + 5, addr + 3, 3);
+}
+
+static inline void addrconf_addr_eui48(u8 *eui, const char *const addr)
+{
+	addrconf_addr_eui48_base(eui, addr);
+	eui[0] ^= 2;
+}
+
 struct mlx5_fpga_conn {
 	struct mlx5_fpga_device *fdev;
 
