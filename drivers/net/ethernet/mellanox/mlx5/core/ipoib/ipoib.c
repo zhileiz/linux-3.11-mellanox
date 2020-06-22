@@ -178,7 +178,7 @@ int mlx5i_create_underlay_qp(struct mlx5_core_dev *mdev, struct mlx5_core_qp *qp
 	void *qpc;
 
 	inlen = MLX5_ST_SZ_BYTES(create_qp_in);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -199,7 +199,7 @@ int mlx5i_create_underlay_qp(struct mlx5_core_dev *mdev, struct mlx5_core_qp *qp
 	}
 
 out:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return ret;
 }
 

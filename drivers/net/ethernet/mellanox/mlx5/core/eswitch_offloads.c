@@ -311,7 +311,7 @@ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw, int vport, u32 sqn
 	struct mlx5_flow_spec *spec;
 	void *misc;
 
-	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
+	spec = kvzalloc_mlx5(sizeof(*spec), GFP_KERNEL);
 	if (!spec) {
 		flow_rule = ERR_PTR(-ENOMEM);
 		goto out;
@@ -335,7 +335,7 @@ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw, int vport, u32 sqn
 	if (IS_ERR(flow_rule))
 		esw_warn(esw->dev, "FDB: Failed to add send to vport rule err %ld\n", PTR_ERR(flow_rule));
 out:
-	kvfree(spec);
+	kvfree_mlx5(spec);
 	return flow_rule;
 }
 
@@ -400,7 +400,7 @@ static int esw_add_fdb_miss_rule(struct mlx5_eswitch *esw)
 	struct mlx5_flow_spec *spec;
 	int err = 0;
 
-	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
+	spec = kvzalloc_mlx5(sizeof(*spec), GFP_KERNEL);
 	if (!spec) {
 		err = -ENOMEM;
 		goto out;
@@ -420,7 +420,7 @@ static int esw_add_fdb_miss_rule(struct mlx5_eswitch *esw)
 
 	esw->fdb_table.offloads.miss_rule = flow_rule;
 out:
-	kvfree(spec);
+	kvfree_mlx5(spec);
 	return err;
 }
 
@@ -488,7 +488,7 @@ static int esw_create_offloads_fdb_tables(struct mlx5_eswitch *esw, int nvports)
 	u32 *flow_group_in;
 
 	esw_debug(esw->dev, "Create offloads FDB Tables\n");
-	flow_group_in = kvzalloc(inlen, GFP_KERNEL);
+	flow_group_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!flow_group_in)
 		return -ENOMEM;
 
@@ -569,7 +569,7 @@ slow_fdb_err:
 	mlx5_destroy_flow_table(esw->fdb_table.fdb);
 fast_fdb_err:
 ns_err:
-	kvfree(flow_group_in);
+	kvfree_mlx5(flow_group_in);
 	return err;
 }
 
@@ -631,7 +631,7 @@ static int esw_create_vport_rx_group(struct mlx5_eswitch *esw)
 	int err = 0;
 	int nvports = priv->sriov.num_vfs + 2;
 
-	flow_group_in = kvzalloc(inlen, GFP_KERNEL);
+	flow_group_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!flow_group_in)
 		return -ENOMEM;
 
@@ -675,7 +675,7 @@ mlx5_eswitch_create_vport_rx_rule(struct mlx5_eswitch *esw, int vport, u32 tirn)
 	struct mlx5_flow_spec *spec;
 	void *misc;
 
-	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
+	spec = kvzalloc_mlx5(sizeof(*spec), GFP_KERNEL);
 	if (!spec) {
 		flow_rule = ERR_PTR(-ENOMEM);
 		goto out;
@@ -700,7 +700,7 @@ mlx5_eswitch_create_vport_rx_rule(struct mlx5_eswitch *esw, int vport, u32 tirn)
 	}
 
 out:
-	kvfree(spec);
+	kvfree_mlx5(spec);
 	return flow_rule;
 }
 

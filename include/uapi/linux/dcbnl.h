@@ -28,6 +28,9 @@
 #define IEEE_8021QAZ_TSA_STRICT		0
 #define IEEE_8021QAZ_TSA_CB_SHAPER	1
 #define IEEE_8021QAZ_TSA_ETS		2
+#define IEEE_8021QAZ_APP_SEL_DGRAM	3
+#define IEEE_8021QAZ_APP_SEL_ANY	4
+#define IEEE_8021QAZ_APP_SEL_DSCP   5
 #define IEEE_8021QAZ_TSA_VENDOR		255
 
 /* This structure contains the IEEE 802.1Qaz ETS managed object

@@ -167,7 +167,7 @@ __esw_fdb_set_vport_rule(struct mlx5_eswitch *esw, u32 vport, bool rx_rule,
 	if (rx_rule)
 		match_header |= MLX5_MATCH_MISC_PARAMETERS;
 
-	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
+	spec = kvzalloc_mlx5(sizeof(*spec), GFP_KERNEL);
 	if (!spec)
 		return NULL;
 
@@ -208,7 +208,7 @@ __esw_fdb_set_vport_rule(struct mlx5_eswitch *esw, u32 vport, bool rx_rule,
 		flow_rule = NULL;
 	}
 
-	kvfree(spec);
+	kvfree_mlx5(spec);
 	return flow_rule;
 }
 
@@ -268,7 +268,7 @@ static int esw_create_legacy_fdb_table(struct mlx5_eswitch *esw, int nvports)
 		return -EOPNOTSUPP;
 	}
 
-	flow_group_in = kvzalloc(inlen, GFP_KERNEL);
+	flow_group_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!flow_group_in)
 		return -ENOMEM;
 
@@ -348,7 +348,7 @@ out:
 		}
 	}
 
-	kvfree(flow_group_in);
+	kvfree_mlx5(flow_group_in);
 	return err;
 }
 
@@ -873,7 +873,7 @@ static int esw_vport_enable_egress_acl(struct mlx5_eswitch *esw,
 		return -EOPNOTSUPP;
 	}
 
-	flow_group_in = kvzalloc(inlen, GFP_KERNEL);
+	flow_group_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!flow_group_in)
 		return -ENOMEM;
 
@@ -915,7 +915,7 @@ static int esw_vport_enable_egress_acl(struct mlx5_eswitch *esw,
 	vport->egress.drop_grp = drop_grp;
 	vport->egress.allowed_vlans_grp = vlan_grp;
 out:
-	kvfree(flow_group_in);
+	kvfree_mlx5(flow_group_in);
 	if (err && !IS_ERR_OR_NULL(vlan_grp))
 		mlx5_destroy_flow_group(vlan_grp);
 	if (err && !IS_ERR_OR_NULL(acl))
@@ -990,7 +990,7 @@ static int esw_vport_enable_ingress_acl(struct mlx5_eswitch *esw,
 		return -EOPNOTSUPP;
 	}
 
-	flow_group_in = kvzalloc(inlen, GFP_KERNEL);
+	flow_group_in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!flow_group_in)
 		return -ENOMEM;
 
@@ -1080,7 +1080,7 @@ out:
 			mlx5_destroy_flow_table(vport->ingress.acl);
 	}
 
-	kvfree(flow_group_in);
+	kvfree_mlx5(flow_group_in);
 	return err;
 }
 
@@ -1152,7 +1152,7 @@ static int esw_vport_ingress_config(struct mlx5_eswitch *esw,
 		  "vport[%d] configure ingress rules, vlan(%d) qos(%d)\n",
 		  vport->vport, vport->info.vlan, vport->info.qos);
 
-	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
+	spec = kvzalloc_mlx5(sizeof(*spec), GFP_KERNEL);
 	if (!spec) {
 		err = -ENOMEM;
 		goto out;
@@ -1201,7 +1201,7 @@ static int esw_vport_ingress_config(struct mlx5_eswitch *esw,
 out:
 	if (err)
 		esw_vport_cleanup_ingress_rules(esw, vport);
-	kvfree(spec);
+	kvfree_mlx5(spec);
 	return err;
 }
 
@@ -1231,7 +1231,7 @@ static int esw_vport_egress_config(struct mlx5_eswitch *esw,
 		  "vport[%d] configure egress rules, vlan(%d) qos(%d)\n",
 		  vport->vport, vport->info.vlan, vport->info.qos);
 
-	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
+	spec = kvzalloc_mlx5(sizeof(*spec), GFP_KERNEL);
 	if (!spec) {
 		err = -ENOMEM;
 		goto out;
@@ -1271,7 +1271,7 @@ static int esw_vport_egress_config(struct mlx5_eswitch *esw,
 		vport->egress.drop_rule = NULL;
 	}
 out:
-	kvfree(spec);
+	kvfree_mlx5(spec);
 	return err;
 }
 
@@ -2032,7 +2032,7 @@ int mlx5_eswitch_get_vport_stats(struct mlx5_eswitch *esw,
 	if (!LEGAL_VPORT(esw, vport))
 		return -EINVAL;
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -2079,6 +2079,6 @@ int mlx5_eswitch_get_vport_stats(struct mlx5_eswitch *esw,
 		MLX5_GET_CTR(out, received_eth_broadcast.packets);
 
 free_out:
-	kvfree(out);
+	kvfree_mlx5(out);
 	return err;
 }
