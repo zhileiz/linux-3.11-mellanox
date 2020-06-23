@@ -36,7 +36,7 @@
 #include "mlx5_core.h"
 #include "fs_core.h"
 #include "fs_cmd.h"
-#include "diag/fs_tracepoint.h"
+// #include "diag/fs_tracepoint.h"
 
 #define INIT_TREE_NODE_ARRAY_SIZE(...)	(sizeof((struct init_tree_node[]){__VA_ARGS__}) /\
 					 sizeof(struct init_tree_node))
@@ -464,7 +464,7 @@ static void del_sw_hw_rule(struct fs_node *node)
 	fs_get_obj(fte, rule->node.parent);
 	fs_get_obj(fg, fte->node.parent);
 	fs_get_obj(ft, fg->node.parent);
-	trace_mlx5_fs_del_rule(rule);
+	// NOT SUPPORTED: trace_mlx5_fs_del_rule(rule);
 	if (rule->sw_action == MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO) {
 		mutex_lock(&rule->dest_attr.ft->lock);
 		list_del(&rule->next_ft);
@@ -507,7 +507,7 @@ static void del_hw_fte(struct fs_node *node)
 	fs_get_obj(fg, fte->node.parent);
 	fs_get_obj(ft, fg->node.parent);
 
-	trace_mlx5_fs_del_fte(fte);
+	// NOT SUPPORTED: trace_mlx5_fs_del_fte(fte);
 	dev = get_dev(&ft->node);
 	if (node->active) {
 		err = mlx5_cmd_delete_fte(dev, ft,
@@ -546,7 +546,7 @@ static void del_hw_flow_group(struct fs_node *node)
 	fs_get_obj(fg, node);
 	fs_get_obj(ft, fg->node.parent);
 	dev = get_dev(&ft->node);
-	trace_mlx5_fs_del_fg(fg);
+	// NOT SUPPORTED: trace_mlx5_fs_del_fg(fg);
 
 	if (fg->node.active && mlx5_cmd_destroy_flow_group(dev, ft, fg->id))
 		mlx5_core_warn(dev, "flow steering can't destroy fg %d of ft %d\n",
@@ -1154,7 +1154,7 @@ struct mlx5_flow_group *mlx5_create_flow_group(struct mlx5_flow_table *ft,
 		tree_put_node(&fg->node);
 		return ERR_PTR(err);
 	}
-	trace_mlx5_fs_add_fg(fg);
+	// NOT SUPPORTED: trace_mlx5_fs_add_fg(fg);
 	fg->node.active = true;
 
 	return fg;
@@ -1380,7 +1380,7 @@ static int create_auto_flow_group(struct mlx5_flow_table *ft,
 	err = mlx5_cmd_create_flow_group(dev, ft, in, &fg->id);
 	if (!err) {
 		fg->node.active = true;
-		trace_mlx5_fs_add_fg(fg);
+		// NOT SUPPORTED: trace_mlx5_fs_add_fg(fg);
 	}
 
 	kvfree_mlx5(in);
@@ -1475,12 +1475,12 @@ static struct mlx5_flow_handle *add_rule_fg(struct mlx5_flow_group *fg,
 		fte->action = old_action;
 		return handle;
 	}
-	trace_mlx5_fs_set_fte(fte, false);
+	// NOT SUPPORTED: trace_mlx5_fs_set_fte(fte, false);
 
 	for (i = 0; i < handle->num_rules; i++) {
 		if (refcount_read(&handle->rule[i]->node.refcount) == 1) {
 			tree_add_node(&handle->rule[i]->node, &fte->node);
-			trace_mlx5_fs_add_rule(handle->rule[i]);
+			// NOT SUPPORTED: trace_mlx5_fs_add_rule(handle->rule[i]);
 		}
 	}
 	return handle;

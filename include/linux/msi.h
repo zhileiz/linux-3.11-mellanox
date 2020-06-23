@@ -37,6 +37,7 @@ struct msi_desc {
 	unsigned int irq;
 	unsigned int nvec_used;		/* number of messages */
 	struct list_head list;
+	const struct cpumask		*affinity;
 
 	union {
 		void __iomem *mask_base;
@@ -49,6 +50,17 @@ struct msi_desc {
 
 	struct kobject kobj;
 };
+
+/* Helpers to hide struct msi_desc implementation details */
+#define msi_desc_to_dev(desc)		((desc)->dev)
+#define dev_to_msi_list(dev)		(&(dev)->msi_list)
+#define first_msi_entry(dev)		\
+	list_first_entry(dev_to_msi_list((dev)), struct msi_desc, list)
+#define for_each_msi_entry(desc, dev)	\
+	list_for_each_entry((desc), dev_to_msi_list((dev)), list)
+#define first_pci_msi_entry(pdev)	first_msi_entry(&(pdev)->dev)
+#define for_each_pci_msi_entry(desc, pdev)	\
+	for_each_msi_entry((desc), &(pdev)->dev)
 
 /*
  * The arch hook for setup up msi irqs

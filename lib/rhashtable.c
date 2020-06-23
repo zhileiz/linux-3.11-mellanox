@@ -87,7 +87,7 @@ static int alloc_bucket_locks(struct rhashtable *ht, struct bucket_table *tbl,
 
 	if (sizeof(spinlock_t) != 0) {
 		if (gfpflags_allow_blocking(gfp))
-			tbl->locks = kvmalloc(size * sizeof(spinlock_t), gfp);
+			tbl->locks = kvmalloc_mlx5(size * sizeof(spinlock_t), gfp);
 		else
 			tbl->locks = kmalloc_array(size, sizeof(spinlock_t),
 						   gfp);
@@ -140,8 +140,8 @@ static void bucket_table_free(const struct bucket_table *tbl)
 	if (tbl->nest)
 		nested_bucket_table_free(tbl);
 
-	kvfree(tbl->locks);
-	kvfree(tbl);
+	kvfree_mlx5(tbl->locks);
+	kvfree_mlx5(tbl);
 }
 
 static void bucket_table_free_rcu(struct rcu_head *head)
@@ -214,7 +214,7 @@ static struct bucket_table *bucket_table_alloc(struct rhashtable *ht,
 	if (gfp != GFP_KERNEL)
 		tbl = kzalloc(size, gfp | __GFP_NOWARN | __GFP_NORETRY);
 	else
-		tbl = kvzalloc(size, gfp);
+		tbl = kvzalloc_mlx5(size, gfp);
 
 	size = nbuckets;
 
@@ -234,7 +234,7 @@ static struct bucket_table *bucket_table_alloc(struct rhashtable *ht,
 
 	INIT_LIST_HEAD(&tbl->walkers);
 
-	tbl->hash_rnd = get_random_u32();
+	tbl->hash_rnd = prandom_u32();
 
 	for (i = 0; i < nbuckets; i++)
 		INIT_RHT_NULLS_HEAD(tbl->buckets[i], ht, i);

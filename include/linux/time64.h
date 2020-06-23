@@ -5,7 +5,7 @@
 #include <uapi/linux/time.h>
 #include <linux/math64.h>
 
-typedef __s64 time64_t;
+typedef __signed__ long time64_t;
 typedef __u64 timeu64_t;
 
 #if __BITS_PER_LONG == 64
@@ -14,7 +14,7 @@ typedef __u64 timeu64_t;
 #define itimerspec64 itimerspec
 #else
 struct timespec64 {
-	time64_t	tv_sec;			/* seconds */
+	long	tv_sec;			/* seconds */
 	long		tv_nsec;		/* nanoseconds */
 };
 
