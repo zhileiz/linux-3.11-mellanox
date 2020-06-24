@@ -788,7 +788,7 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
 
 	*inlen = MLX5_ST_SZ_BYTES(create_cq_in) +
 		 MLX5_FLD_SZ_BYTES(create_cq_in, pas[0]) * ncont;
-	*cqb = kvzalloc(*inlen, GFP_KERNEL);
+	*cqb = kvzalloc_mlx5(*inlen, GFP_KERNEL);
 	if (!*cqb) {
 		err = -ENOMEM;
 		goto err_db;
@@ -899,7 +899,7 @@ static int create_cq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_cq *cq,
 
 	*inlen = MLX5_ST_SZ_BYTES(create_cq_in) +
 		 MLX5_FLD_SZ_BYTES(create_cq_in, pas[0]) * cq->buf.buf.npages;
-	*cqb = kvzalloc(*inlen, GFP_KERNEL);
+	*cqb = kvzalloc_mlx5(*inlen, GFP_KERNEL);
 	if (!*cqb) {
 		err = -ENOMEM;
 		goto err_buf;
@@ -1034,14 +1034,14 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
 		}
 
 
-	kvfree(cqb);
+	kvfree_mlx5(cqb);
 	return &cq->ibcq;
 
 err_cmd:
 	mlx5_core_destroy_cq(dev->mdev, &cq->mcq);
 
 err_cqb:
-	kvfree(cqb);
+	kvfree_mlx5(cqb);
 	if (context)
 		destroy_cq_user(cq, context);
 	else
@@ -1335,7 +1335,7 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
 	inlen = MLX5_ST_SZ_BYTES(modify_cq_in) +
 		MLX5_FLD_SZ_BYTES(modify_cq_in, pas[0]) * npas;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		goto ex_resize;
@@ -1398,11 +1398,11 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
 	}
 	mutex_unlock(&cq->resize_mutex);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	return 0;
 
 ex_alloc:
-	kvfree(in);
+	kvfree_mlx5(in);
 
 ex_resize:
 	if (udata)

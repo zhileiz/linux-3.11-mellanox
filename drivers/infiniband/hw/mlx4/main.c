@@ -86,7 +86,7 @@ static void init_query_mad(struct ib_smp *mad)
 	mad->method	   = IB_MGMT_METHOD_GET;
 }
 
-static union ib_gid zgid;
+union ib_gid zgid;
 
 static int mlx4_ib_query_device(struct ib_device *ibdev,
 				struct ib_device_attr *props)

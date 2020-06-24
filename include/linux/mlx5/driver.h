@@ -50,25 +50,10 @@
 #include <linux/mlx5/device.h>
 #include <linux/mlx5/doorbell.h>
 #include <linux/mlx5/srq.h>
-//#include <linux/clocksource.h>
+#include <linux/clocksource.h>
 #include <linux/net_tstamp.h>
 #include <linux/irqdesc.h>
 #include <linux/ptp_clock_kernel.h>
-
-
-enum ib_sig_err_type {
-	IB_SIG_BAD_GUARD,
-	IB_SIG_BAD_REFTAG,
-	IB_SIG_BAD_APPTAG,
-};
-
-struct ib_sig_err {
-	enum ib_sig_err_type	err_type;
-	u32			expected;
-	u32			actual;
-	u64			sig_err_offset;
-	u32			key;
-};
 
 enum {
 	MLX5_BOARD_ID_LEN = 64,

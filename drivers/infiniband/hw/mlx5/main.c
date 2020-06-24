@@ -42,8 +42,8 @@
 #include <asm/pat.h>
 #endif
 #include <linux/sched.h>
-#include <linux/sched/mm.h>
-#include <linux/sched/task.h>
+#include <linux/sched.h>
+//#include <linux/sched/task.h>
 #include <linux/delay.h>
 #include <rdma/ib_user_verbs.h>
 #include <rdma/ib_addr.h>
@@ -377,7 +377,7 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev, u8 port_num,
 	struct ib_gid_attr attr;
 	union ib_gid gid;
 
-	if (ib_get_cached_gid(&dev->ib_dev, port_num, index, &gid, &attr))
+	if (ib_get_cached_gid_mlx5(&dev->ib_dev, port_num, index, &gid, &attr))
 		return 0;
 
 	if (!attr.ndev)
@@ -398,7 +398,7 @@ int mlx5_get_roce_gid_type(struct mlx5_ib_dev *dev, u8 port_num,
 	union ib_gid gid;
 	int ret;
 
-	ret = ib_get_cached_gid(&dev->ib_dev, port_num, index, &gid, &attr);
+	ret = ib_get_cached_gid_mlx5(&dev->ib_dev, port_num, index, &gid, &attr);
 	if (ret)
 		return ret;
 
@@ -1759,7 +1759,7 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
 	case MLX5_IB_MMAP_WC_PAGE:
 /* Some architectures don't support WC memory */
 #if defined(CONFIG_X86)
-		if (!pat_enabled())
+		if (!pat_enabled)
 			return -EPERM;
 #elif !(defined(CONFIG_PPC) || (defined(CONFIG_ARM) && defined(CONFIG_MMU)))
 			return -EPERM;
@@ -2452,7 +2452,7 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
 	if (!is_valid_attr(dev->mdev, flow_attr))
 		return ERR_PTR(-EINVAL);
 
-	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
+	spec = kvzalloc_mlx5(sizeof(*spec), GFP_KERNEL);
 	handler = kzalloc(sizeof(*handler), GFP_KERNEL);
 	if (!handler || !spec) {
 		err = -ENOMEM;
@@ -2509,7 +2509,7 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
 free:
 	if (err)
 		kfree(handler);
-	kvfree(spec);
+	kvfree_mlx5(spec);
 	return err ? ERR_PTR(err) : handler;
 }
 
@@ -3124,7 +3124,7 @@ static int create_umr_res(struct mlx5_ib_dev *dev)
 		goto error_0;
 	}
 
-	pd = ib_alloc_pd(&dev->ib_dev, 0);
+	pd = ib_alloc_pd_mlx5(&dev->ib_dev, 0);
 	if (IS_ERR(pd)) {
 		mlx5_ib_dbg(dev, "Couldn't create PD for sync UMR QP\n");
 		ret = PTR_ERR(pd);
@@ -3287,7 +3287,7 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
 	attr.attr.max_sge = 1;
 	attr.attr.max_wr = 1;
 	attr.srq_type = IB_SRQT_XRC;
-	attr.ext.cq = devr->c0;
+	attr.ext.xrc.cq = devr->c0;
 	attr.ext.xrc.xrcd = devr->x0;
 
 	devr->s0 = mlx5_ib_create_srq(devr->p0, &attr, NULL);
@@ -3302,9 +3302,9 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
 	devr->s0->srq_context   = NULL;
 	devr->s0->srq_type      = IB_SRQT_XRC;
 	devr->s0->ext.xrc.xrcd	= devr->x0;
-	devr->s0->ext.cq	= devr->c0;
+	devr->s0->ext.xrc.cq	= devr->c0;
 	atomic_inc(&devr->s0->ext.xrc.xrcd->usecnt);
-	atomic_inc(&devr->s0->ext.cq->usecnt);
+	atomic_inc(&devr->s0->ext.xrc.cq->usecnt);
 	atomic_inc(&devr->p0->usecnt);
 	atomic_set(&devr->s0->usecnt, 0);
 
@@ -3323,7 +3323,7 @@ static int create_dev_resources(struct mlx5_ib_resources *devr)
 	devr->s1->event_handler = NULL;
 	devr->s1->srq_context   = NULL;
 	devr->s1->srq_type      = IB_SRQT_BASIC;
-	devr->s1->ext.cq	= devr->c0;
+	devr->s1->ext.xrc.cq	= devr->c0;
 	atomic_inc(&devr->p0->usecnt);
 	atomic_set(&devr->s1->usecnt, 0);
 
@@ -3727,7 +3727,7 @@ static int mlx5_ib_query_q_counters(struct mlx5_ib_dev *dev,
 	__be32 val;
 	int ret, i;
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -3743,7 +3743,7 @@ static int mlx5_ib_query_q_counters(struct mlx5_ib_dev *dev,
 	}
 
 free:
-	kvfree(out);
+	kvfree_mlx5(out);
 	return ret;
 }
 

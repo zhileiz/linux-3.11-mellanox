@@ -30,7 +30,7 @@
  * SOFTWARE.
  */
 
-#define pr_fmt(fmt) PFX fmt
+#define pr_fmt(fmt) "ib_srp: " fmt
 
 #include <linux/module.h>
 #include <linux/init.h>

@@ -127,7 +127,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
 		goto err_umem;
 	}
 
-	in->pas = kvzalloc(sizeof(*in->pas) * ncont, GFP_KERNEL);
+	in->pas = kvzalloc_mlx5(sizeof(*in->pas) * ncont, GFP_KERNEL);
 	if (!in->pas) {
 		err = -ENOMEM;
 		goto err_umem;
@@ -151,7 +151,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
 	return 0;
 
 err_in:
-	kvfree(in->pas);
+	kvfree_mlx5(in->pas);
 
 err_umem:
 	ib_umem_release(srq->umem);
@@ -189,7 +189,7 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
 	}
 
 	mlx5_ib_dbg(dev, "srq->buf.page_shift = %d\n", srq->buf.page_shift);
-	in->pas = kvzalloc(sizeof(*in->pas) * srq->buf.npages, GFP_KERNEL);
+	in->pas = kvzalloc_mlx5(sizeof(*in->pas) * srq->buf.npages, GFP_KERNEL);
 	if (!in->pas) {
 		err = -ENOMEM;
 		goto err_buf;
@@ -211,7 +211,7 @@ static int create_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq,
 	return 0;
 
 err_in:
-	kvfree(in->pas);
+	kvfree_mlx5(in->pas);
 
 err_buf:
 	mlx5_buf_free(dev->mdev, &srq->buf);
@@ -230,7 +230,7 @@ static void destroy_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq)
 
 static void destroy_srq_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_srq *srq)
 {
-	kvfree(srq->wrid);
+	kvfree_mlx5(srq->wrid);
 	mlx5_buf_free(dev->mdev, &srq->buf);
 	mlx5_db_free(dev->mdev, &srq->db);
 }
@@ -311,14 +311,14 @@ struct ib_srq *mlx5_ib_create_srq(struct ib_pd *pd,
 	}
 
 	if (ib_srq_has_cq(init_attr->srq_type))
-		in.cqn = to_mcq(init_attr->ext.cq)->mcq.cqn;
+		in.cqn = to_mcq(init_attr->ext.xrc.cq)->mcq.cqn;
 	else
 		in.cqn = to_mcq(dev->devr.c0)->mcq.cqn;
 
 	in.pd = to_mpd(pd)->pdn;
 	in.db_record = srq->db.dma;
 	err = mlx5_core_create_srq(dev->mdev, &srq->msrq, &in);
-	kvfree(in.pas);
+	kvfree_mlx5(in.pas);
 	if (err) {
 		mlx5_ib_dbg(dev, "create SRQ failed, err %d\n", err);
 		goto err_usr_kern_srq;

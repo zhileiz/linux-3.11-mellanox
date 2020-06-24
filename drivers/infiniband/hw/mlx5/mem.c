@@ -32,7 +32,7 @@
 
 #include <linux/module.h>
 #include <rdma/ib_umem.h>
-#include <rdma/ib_umem_odp.h>
+//#include <rdma/ib_umem_odp.h>
 #include "mlx5_ib.h"
 
 /* @umem: umem object to scan

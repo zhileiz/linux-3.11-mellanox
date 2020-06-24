@@ -218,7 +218,7 @@ static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
 			(struct ib_pma_portcounters_ext *)(out_mad->data + 40);
 		int sz = MLX5_ST_SZ_BYTES(query_vport_counter_out);
 
-		out_cnt = kvzalloc(sz, GFP_KERNEL);
+		out_cnt = kvzalloc_mlx5(sz, GFP_KERNEL);
 		if (!out_cnt)
 			return IB_MAD_RESULT_FAILURE;
 
@@ -231,7 +231,7 @@ static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
 			(struct ib_pma_portcounters *)(out_mad->data + 40);
 		int sz = MLX5_ST_SZ_BYTES(ppcnt_reg);
 
-		out_cnt = kvzalloc(sz, GFP_KERNEL);
+		out_cnt = kvzalloc_mlx5(sz, GFP_KERNEL);
 		if (!out_cnt)
 			return IB_MAD_RESULT_FAILURE;
 
@@ -241,7 +241,7 @@ static int process_pma_cmd(struct ib_device *ibdev, u8 port_num,
 			pma_cnt_assign(pma_cnt, out_cnt);
 		}
 
-	kvfree(out_cnt);
+	kvfree_mlx5(out_cnt);
 	if (err)
 		return IB_MAD_RESULT_FAILURE;
 

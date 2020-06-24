@@ -829,7 +829,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
 
 	*inlen = MLX5_ST_SZ_BYTES(create_qp_in) +
 		 MLX5_FLD_SZ_BYTES(create_qp_in, pas[0]) * ncont;
-	*in = kvzalloc(*inlen, GFP_KERNEL);
+	*in = kvzalloc_mlx5(*inlen, GFP_KERNEL);
 	if (!*in) {
 		err = -ENOMEM;
 		goto err_umem;
@@ -867,7 +867,7 @@ err_unmap:
 	mlx5_ib_db_unmap_user(context, &qp->db);
 
 err_free:
-	kvfree(*in);
+	kvfree_mlx5(*in);
 
 err_umem:
 	if (ubuffer->umem)
@@ -937,7 +937,7 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
 	qp->sq.qend = mlx5_get_send_wqe(qp, qp->sq.wqe_cnt);
 	*inlen = MLX5_ST_SZ_BYTES(create_qp_in) +
 		 MLX5_FLD_SZ_BYTES(create_qp_in, pas[0]) * qp->buf.npages;
-	*in = kvzalloc(*inlen, GFP_KERNEL);
+	*in = kvzalloc_mlx5(*inlen, GFP_KERNEL);
 	if (!*in) {
 		err = -ENOMEM;
 		goto err_buf;
@@ -986,15 +986,15 @@ static int create_kernel_qp(struct mlx5_ib_dev *dev,
 	return 0;
 
 err_wrid:
-	kvfree(qp->sq.wqe_head);
-	kvfree(qp->sq.w_list);
-	kvfree(qp->sq.wrid);
-	kvfree(qp->sq.wr_data);
-	kvfree(qp->rq.wrid);
+	kvfree_mlx5(qp->sq.wqe_head);
+	kvfree_mlx5(qp->sq.w_list);
+	kvfree_mlx5(qp->sq.wrid);
+	kvfree_mlx5(qp->sq.wr_data);
+	kvfree_mlx5(qp->rq.wrid);
 	mlx5_db_free(dev->mdev, &qp->db);
 
 err_free:
-	kvfree(*in);
+	kvfree_mlx5(*in);
 
 err_buf:
 	mlx5_buf_free(dev->mdev, &qp->buf);
@@ -1003,11 +1003,11 @@ err_buf:
 
 static void destroy_qp_kernel(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp)
 {
-	kvfree(qp->sq.wqe_head);
-	kvfree(qp->sq.w_list);
-	kvfree(qp->sq.wrid);
-	kvfree(qp->sq.wr_data);
-	kvfree(qp->rq.wrid);
+	kvfree_mlx5(qp->sq.wqe_head);
+	kvfree_mlx5(qp->sq.w_list);
+	kvfree_mlx5(qp->sq.wrid);
+	kvfree_mlx5(qp->sq.wr_data);
+	kvfree_mlx5(qp->rq.wrid);
 	mlx5_db_free(dev->mdev, &qp->db);
 	mlx5_buf_free(dev->mdev, &qp->buf);
 }
@@ -1075,7 +1075,7 @@ static int create_raw_packet_qp_sq(struct mlx5_ib_dev *dev,
 		return err;
 
 	inlen = MLX5_ST_SZ_BYTES(create_sq_in) + sizeof(u64) * ncont;
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		goto err_umem;
@@ -1109,7 +1109,7 @@ static int create_raw_packet_qp_sq(struct mlx5_ib_dev *dev,
 
 	err = mlx5_core_create_sq_tracked(dev->mdev, in, inlen, &sq->base.mqp);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	if (err)
 		goto err_umem;
@@ -1160,7 +1160,7 @@ static int create_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
 	u32 rq_pas_size = get_rq_pas_size(qpc);
 
 	inlen = MLX5_ST_SZ_BYTES(create_rq_in) + rq_pas_size;
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -1193,7 +1193,7 @@ static int create_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
 
 	err = mlx5_core_create_rq_tracked(dev->mdev, in, inlen, &rq->base.mqp);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }
@@ -1221,7 +1221,7 @@ static int create_raw_packet_qp_tir(struct mlx5_ib_dev *dev,
 	int err;
 
 	inlen = MLX5_ST_SZ_BYTES(create_tir_in);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -1234,7 +1234,7 @@ static int create_raw_packet_qp_tir(struct mlx5_ib_dev *dev,
 
 	err = mlx5_core_create_tir(dev->mdev, in, inlen, &rq->tirn);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }
@@ -1418,7 +1418,7 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
 	}
 
 	inlen = MLX5_ST_SZ_BYTES(create_tir_in);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -1528,14 +1528,14 @@ create_tir:
 	if (err)
 		goto err;
 
-	kvfree(in);
+	kvfree_mlx5(in);
 	/* qpn is reserved for that QP */
 	qp->trans_qp.base.mqp.qpn = 0;
 	qp->flags |= MLX5_IB_QP_RSS;
 	return 0;
 
 err:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -1710,7 +1710,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
 		if (err)
 			return err;
 	} else {
-		in = kvzalloc(inlen, GFP_KERNEL);
+		in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 		if (!in)
 			return -ENOMEM;
 
@@ -1850,7 +1850,7 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
 		goto err_create;
 	}
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	base->container_mibqp = qp;
 	base->mqp.event = mlx5_ib_qp_event;
@@ -1881,7 +1881,7 @@ err_create:
 		destroy_qp_kernel(dev, qp);
 
 err:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -2264,7 +2264,7 @@ static int modify_raw_packet_eth_prio(struct mlx5_core_dev *dev,
 	int err;
 
 	inlen = MLX5_ST_SZ_BYTES(modify_tis_in);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -2275,7 +2275,7 @@ static int modify_raw_packet_eth_prio(struct mlx5_core_dev *dev,
 
 	err = mlx5_core_modify_tis(dev, sq->tisn, in, inlen);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }
@@ -2289,7 +2289,7 @@ static int modify_raw_packet_tx_affinity(struct mlx5_core_dev *dev,
 	int err;
 
 	inlen = MLX5_ST_SZ_BYTES(modify_tis_in);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -2300,7 +2300,7 @@ static int modify_raw_packet_tx_affinity(struct mlx5_core_dev *dev,
 
 	err = mlx5_core_modify_tis(dev, sq->tisn, in, inlen);
 
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	return err;
 }
@@ -2538,7 +2538,7 @@ static int modify_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
 	int err;
 
 	inlen = MLX5_ST_SZ_BYTES(modify_rq_in);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -2564,7 +2564,7 @@ static int modify_raw_packet_qp_rq(struct mlx5_ib_dev *dev,
 	rq->state = new_state;
 
 out:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -2583,7 +2583,7 @@ static int modify_raw_packet_qp_sq(struct mlx5_core_dev *dev,
 	int err;
 
 	inlen = MLX5_ST_SZ_BYTES(modify_sq_in);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -2633,7 +2633,7 @@ static int modify_raw_packet_qp_sq(struct mlx5_core_dev *dev,
 	sq->state = new_state;
 
 out:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -3031,7 +3031,7 @@ int mlx5_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
 			goto out;
 		}
 	} else if (qp_type != MLX5_IB_QPT_REG_UMR &&
-	    !ib_modify_qp_is_ok(cur_state, new_state, qp_type, attr_mask, ll)) {
+	    !ib_modify_qp_is_ok_mlx5(cur_state, new_state, qp_type, attr_mask, ll)) {
 		mlx5_ib_dbg(dev, "invalid QP state transition from %d to %d, qp_type %d, attr_mask 0x%x\n",
 			    cur_state, new_state, ibqp->qp_type, attr_mask);
 		goto out;
@@ -4396,7 +4396,7 @@ static int query_raw_packet_qp_sq_state(struct mlx5_ib_dev *dev,
 	int err;
 
 	inlen = MLX5_ST_SZ_BYTES(query_sq_out);
-	out = kvzalloc(inlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -4409,7 +4409,7 @@ static int query_raw_packet_qp_sq_state(struct mlx5_ib_dev *dev,
 	sq->state = *sq_state;
 
 out:
-	kvfree(out);
+	kvfree_mlx5(out);
 	return err;
 }
 
@@ -4423,7 +4423,7 @@ static int query_raw_packet_qp_rq_state(struct mlx5_ib_dev *dev,
 	int err;
 
 	inlen = MLX5_ST_SZ_BYTES(query_rq_out);
-	out = kvzalloc(inlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -4436,7 +4436,7 @@ static int query_raw_packet_qp_rq_state(struct mlx5_ib_dev *dev,
 	rq->state = *rq_state;
 
 out:
-	kvfree(out);
+	kvfree_mlx5(out);
 	return err;
 }
 
@@ -4753,7 +4753,7 @@ static int  create_rq(struct mlx5_ib_rwq *rwq, struct ib_pd *pd,
 	dev = to_mdev(pd->device);
 
 	inlen = MLX5_ST_SZ_BYTES(create_rq_in) + sizeof(u64) * rwq->rq_num_pas;
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -4833,7 +4833,7 @@ static int  create_rq(struct mlx5_ib_rwq *rwq, struct ib_pd *pd,
 		}
 	}
 out:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 
@@ -5046,7 +5046,7 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
 		return ERR_PTR(-ENOMEM);
 
 	inlen = MLX5_ST_SZ_BYTES(create_rqt_in) + sizeof(u32) * sz;
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		goto err;
@@ -5061,7 +5061,7 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
 		MLX5_SET(rqtc, rqtc, rq_num[i], init_attr->ind_tbl[i]->wq_num);
 
 	err = mlx5_core_create_rqt(dev->mdev, in, inlen, &rwq_ind_tbl->rqtn);
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	if (err)
 		goto err;
@@ -5125,7 +5125,7 @@ int mlx5_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
 		return -EOPNOTSUPP;
 
 	inlen = MLX5_ST_SZ_BYTES(modify_rq_in);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -5180,6 +5180,6 @@ int mlx5_ib_modify_wq(struct ib_wq *wq, struct ib_wq_attr *wq_attr,
 		rwq->ibwq.state = (wq_state == MLX5_RQC_STATE_ERR) ? IB_WQS_ERR : wq_state;
 
 out:
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
