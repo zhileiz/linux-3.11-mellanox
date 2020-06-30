@@ -52,6 +52,12 @@ int ib_get_cached_gid(struct ib_device    *device,
 		      int                  index,
 		      union ib_gid        *gid);
 
+int ib_get_cached_gid_mlx5(struct ib_device    *device,
+		      u8                   port_num,
+		      int                  index,
+		      union ib_gid        *gid,
+		      struct ib_gid_attr  *attr);
+
 /**
  * ib_find_cached_gid - Returns the port number and GID table index where
  *   a specified GID value occurs.

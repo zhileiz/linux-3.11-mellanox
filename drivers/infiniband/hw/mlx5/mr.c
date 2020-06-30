@@ -663,7 +663,7 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
 		return -ENOMEM;
 	}
 
-	timer_setup(&dev->delay_timer, delay_time_func, 0);
+	setup_timer(&dev->delay_timer, delay_time_func, 0);
 	for (i = 0; i < MAX_MR_CACHE_ENTRIES; i++) {
 		ent = &cache->ent[i];
 		INIT_LIST_HEAD(&ent->head);
@@ -837,7 +837,7 @@ static int mr_umem_get(struct ib_pd *pd, u64 start, u64 length,
 
 	*umem = ib_umem_get(pd->uobject->context, start, length,
 			    access_flags, 0);
-	err = PTR_ERR_OR_ZERO(*umem);
+	err = PTR_RET(*umem);
 	if (err < 0) {
 		mlx5_ib_err(dev, "umem get failed (%d)\n", err);
 		return err;
@@ -1120,7 +1120,7 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
 	inlen = MLX5_ST_SZ_BYTES(create_mkey_in);
 	if (populate)
 		inlen += sizeof(*pas) * roundup(npages, 2);
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in) {
 		err = -ENOMEM;
 		goto err_1;
@@ -1165,14 +1165,14 @@ static struct mlx5_ib_mr *reg_create(struct ib_mr *ibmr, struct ib_pd *pd,
 	mr->mmkey.type = MLX5_MKEY_MR;
 	mr->desc_size = sizeof(struct mlx5_mtt);
 	mr->dev = dev;
-	kvfree(in);
+	kvfree_mlx5(in);
 
 	mlx5_ib_dbg(dev, "mkey = 0x%x\n", mr->mmkey.key);
 
 	return mr;
 
 err_2:
-	kvfree(in);
+	kvfree_mlx5(in);
 
 err_1:
 	if (!ibmr)

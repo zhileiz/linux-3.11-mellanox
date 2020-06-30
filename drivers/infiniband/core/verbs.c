@@ -155,6 +155,59 @@ struct ib_pd *ib_alloc_pd(struct ib_device *device)
 }
 EXPORT_SYMBOL(ib_alloc_pd);
 
+struct ib_pd *__ib_alloc_pd(struct ib_device *device, unsigned int flags,
+		const char *caller)
+{
+	struct ib_pd *pd;
+	int mr_access_flags = 0;
+
+	pd = device->alloc_pd(device, NULL, NULL);
+	if (IS_ERR(pd))
+		return pd;
+
+	pd->device = device;
+	pd->uobject = NULL;
+	pd->__internal_mr = NULL;
+	atomic_set(&pd->usecnt, 0);
+	pd->flags = flags;
+
+	if (device->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY)
+		pd->local_dma_lkey = device->local_dma_lkey;
+	else
+		mr_access_flags |= IB_ACCESS_LOCAL_WRITE;
+
+	if (flags & IB_PD_UNSAFE_GLOBAL_RKEY) {
+		pr_warn("%s: enabling unsafe global rkey\n", caller);
+		mr_access_flags |= IB_ACCESS_REMOTE_READ | IB_ACCESS_REMOTE_WRITE;
+	}
+
+	if (mr_access_flags) {
+		struct ib_mr *mr;
+
+		mr = pd->device->get_dma_mr(pd, mr_access_flags);
+		if (IS_ERR(mr)) {
+			ib_dealloc_pd(pd);
+			return ERR_CAST(mr);
+		}
+
+		mr->device	= pd->device;
+		mr->pd		= pd;
+		mr->uobject	= NULL;
+		mr->need_inval	= false;
+
+		pd->__internal_mr = mr;
+
+		if (!(device->attrs.device_cap_flags & IB_DEVICE_LOCAL_DMA_LKEY))
+			pd->local_dma_lkey = pd->__internal_mr->lkey;
+
+		if (flags & IB_PD_UNSAFE_GLOBAL_RKEY)
+			pd->unsafe_global_rkey = pd->__internal_mr->rkey;
+	}
+
+	return pd;
+}
+EXPORT_SYMBOL(__ib_alloc_pd);
+
 int ib_dealloc_pd(struct ib_pd *pd)
 {
 	if (atomic_read(&pd->usecnt))
@@ -214,6 +267,94 @@ int ib_init_ah_from_wc(struct ib_device *device, u8 port_num, struct ib_wc *wc,
 	return 0;
 }
 EXPORT_SYMBOL(ib_init_ah_from_wc);
+
+/**
+ * ib_sg_to_pages() - Convert the largest prefix of a sg list
+ *     to a page vector
+ * @mr:            memory region
+ * @sgl:           dma mapped scatterlist
+ * @sg_nents:      number of entries in sg
+ * @sg_offset_p:   IN:  start offset in bytes into sg
+ *                 OUT: offset in bytes for element n of the sg of the first
+ *                      byte that has not been processed where n is the return
+ *                      value of this function.
+ * @set_page:      driver page assignment function pointer
+ *
+ * Core service helper for drivers to convert the largest
+ * prefix of given sg list to a page vector. The sg list
+ * prefix converted is the prefix that meet the requirements
+ * of ib_map_mr_sg.
+ *
+ * Returns the number of sg elements that were assigned to
+ * a page vector.
+ */
+int ib_sg_to_pages(struct ib_mr *mr, struct scatterlist *sgl, int sg_nents,
+		unsigned int *sg_offset_p, int (*set_page)(struct ib_mr *, u64))
+{
+	struct scatterlist *sg;
+	u64 last_end_dma_addr = 0;
+	unsigned int sg_offset = sg_offset_p ? *sg_offset_p : 0;
+	unsigned int last_page_off = 0;
+	u64 page_mask = ~((u64)mr->page_size - 1);
+	int i, ret;
+
+	if (unlikely(sg_nents <= 0 || sg_offset > sg_dma_len(&sgl[0])))
+		return -EINVAL;
+
+	mr->iova = sg_dma_address(&sgl[0]) + sg_offset;
+	mr->length = 0;
+
+	for_each_sg(sgl, sg, sg_nents, i) {
+		u64 dma_addr = sg_dma_address(sg) + sg_offset;
+		u64 prev_addr = dma_addr;
+		unsigned int dma_len = sg_dma_len(sg) - sg_offset;
+		u64 end_dma_addr = dma_addr + dma_len;
+		u64 page_addr = dma_addr & page_mask;
+
+		/*
+		 * For the second and later elements, check whether either the
+		 * end of element i-1 or the start of element i is not aligned
+		 * on a page boundary.
+		 */
+		if (i && (last_page_off != 0 || page_addr != dma_addr)) {
+			/* Stop mapping if there is a gap. */
+			if (last_end_dma_addr != dma_addr)
+				break;
+
+			/*
+			 * Coalesce this element with the last. If it is small
+			 * enough just update mr->length. Otherwise start
+			 * mapping from the next page.
+			 */
+			goto next_page;
+		}
+
+		do {
+			ret = set_page(mr, page_addr);
+			if (unlikely(ret < 0)) {
+				sg_offset = prev_addr - sg_dma_address(sg);
+				mr->length += prev_addr - dma_addr;
+				if (sg_offset_p)
+					*sg_offset_p = sg_offset;
+				return i || sg_offset ? i : ret;
+			}
+			prev_addr = page_addr;
+next_page:
+			page_addr += mr->page_size;
+		} while (page_addr < end_dma_addr);
+
+		mr->length += dma_len;
+		last_end_dma_addr = end_dma_addr;
+		last_page_off = end_dma_addr & ~page_mask;
+
+		sg_offset = 0;
+	}
+
+	if (sg_offset_p)
+		*sg_offset_p = 0;
+	return i;
+}
+EXPORT_SYMBOL(ib_sg_to_pages);
 
 struct ib_ah *ib_create_ah_from_wc(struct ib_pd *pd, struct ib_wc *wc,
 				   struct ib_grh *grh, u8 port_num)
@@ -771,6 +912,37 @@ static const struct {
 		[IB_QPS_ERR] =   { .valid = 1 }
 	}
 };
+
+int ib_modify_qp_is_ok_mlx5(enum ib_qp_state cur_state, enum ib_qp_state next_state,
+		       enum ib_qp_type type, enum ib_qp_attr_mask mask,
+		       enum rdma_link_layer ll)
+{
+	enum ib_qp_attr_mask req_param, opt_param;
+
+	if (cur_state  < 0 || cur_state  > IB_QPS_ERR ||
+	    next_state < 0 || next_state > IB_QPS_ERR)
+		return 0;
+
+	if (mask & IB_QP_CUR_STATE  &&
+	    cur_state != IB_QPS_RTR && cur_state != IB_QPS_RTS &&
+	    cur_state != IB_QPS_SQD && cur_state != IB_QPS_SQE)
+		return 0;
+
+	if (!qp_state_table[cur_state][next_state].valid)
+		return 0;
+
+	req_param = qp_state_table[cur_state][next_state].req_param[type];
+	opt_param = qp_state_table[cur_state][next_state].opt_param[type];
+
+	if ((mask & req_param) != req_param)
+		return 0;
+
+	if (mask & ~(req_param | opt_param | IB_QP_STATE))
+		return 0;
+
+	return 1;
+}
+EXPORT_SYMBOL(ib_modify_qp_is_ok_mlx5);
 
 int ib_modify_qp_is_ok(enum ib_qp_state cur_state, enum ib_qp_state next_state,
 		       enum ib_qp_type type, enum ib_qp_attr_mask mask)

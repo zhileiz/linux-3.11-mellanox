@@ -50,25 +50,10 @@
 #include <linux/mlx5/device.h>
 #include <linux/mlx5/doorbell.h>
 #include <linux/mlx5/srq.h>
-//#include <linux/clocksource.h>
+#include <linux/clocksource.h>
 #include <linux/net_tstamp.h>
 #include <linux/irqdesc.h>
 #include <linux/ptp_clock_kernel.h>
-
-
-enum ib_sig_err_type {
-	IB_SIG_BAD_GUARD,
-	IB_SIG_BAD_REFTAG,
-	IB_SIG_BAD_APPTAG,
-};
-
-struct ib_sig_err {
-	enum ib_sig_err_type	err_type;
-	u32			expected;
-	u32			actual;
-	u64			sig_err_offset;
-	u32			key;
-};
 
 enum {
 	MLX5_BOARD_ID_LEN = 64,
@@ -1191,6 +1176,7 @@ struct mlx5_uars_page *mlx5_get_uars_page(struct mlx5_core_dev *mdev);
 void mlx5_put_uars_page(struct mlx5_core_dev *mdev, struct mlx5_uars_page *up);
 
 #ifndef CONFIG_MLX5_CORE_IPOIB
+/*
 static inline
 struct net_device *mlx5_rdma_netdev_alloc(struct mlx5_core_dev *mdev,
 					  struct ib_device *ibdev,
@@ -1207,6 +1193,7 @@ struct net_device *mlx5_rdma_netdev_alloc(struct mlx5_core_dev *mdev,
 					  const char *name,
 					  void (*setup)(struct net_device *));
 void mlx5_rdma_netdev_free(struct net_device *netdev);
+*/
 #endif /* CONFIG_MLX5_CORE_IPOIB */
 
 struct mlx5_profile {

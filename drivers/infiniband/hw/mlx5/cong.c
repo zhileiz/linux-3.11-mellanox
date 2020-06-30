@@ -255,7 +255,7 @@ static int mlx5_ib_get_cc_params(struct mlx5_ib_dev *dev, int offset, u32 *var)
 	int err;
 	enum mlx5_ib_cong_node_type node;
 
-	out = kvzalloc(outlen, GFP_KERNEL);
+	out = kvzalloc_mlx5(outlen, GFP_KERNEL);
 	if (!out)
 		return -ENOMEM;
 
@@ -269,7 +269,7 @@ static int mlx5_ib_get_cc_params(struct mlx5_ib_dev *dev, int offset, u32 *var)
 	*var = mlx5_get_cc_param_val(field, offset);
 
 free:
-	kvfree(out);
+	kvfree_mlx5(out);
 	return err;
 }
 
@@ -282,7 +282,7 @@ static int mlx5_ib_set_cc_params(struct mlx5_ib_dev *dev, int offset, u32 var)
 	u32 attr_mask = 0;
 	int err;
 
-	in = kvzalloc(inlen, GFP_KERNEL);
+	in = kvzalloc_mlx5(inlen, GFP_KERNEL);
 	if (!in)
 		return -ENOMEM;
 
@@ -300,7 +300,7 @@ static int mlx5_ib_set_cc_params(struct mlx5_ib_dev *dev, int offset, u32 var)
 		 attr_mask);
 
 	err = mlx5_cmd_modify_cong_params(dev->mdev, in, inlen);
-	kvfree(in);
+	kvfree_mlx5(in);
 	return err;
 }
 

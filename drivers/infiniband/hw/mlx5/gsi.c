@@ -112,6 +112,7 @@ static void handle_single_completion(struct ib_cq *cq, struct ib_wc *wc)
 	spin_unlock_irqrestore(&gsi->lock, flags);
 }
 
+/*
 struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
 				    struct ib_qp_init_attr *init_attr)
 {
@@ -209,9 +210,11 @@ err_free:
 	kfree(gsi);
 	return ERR_PTR(ret);
 }
+*/
 
 int mlx5_ib_gsi_destroy_qp(struct ib_qp *qp)
 {
+	/*
 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
 	struct mlx5_ib_gsi_qp *gsi = gsi_qp(qp);
 	const int port_num = gsi->port_num;
@@ -245,6 +248,7 @@ int mlx5_ib_gsi_destroy_qp(struct ib_qp *qp)
 	kfree(gsi->tx_qps);
 	kfree(gsi);
 
+	*/
 	return 0;
 }
 

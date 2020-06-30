@@ -3,7 +3,7 @@
 #
 
 config MLXFW
-	tristate "Mellanox Technologies firmware flash module"
+	tristate "Mellanox Technologies firmware flash!! module"
 	---help---
 	  This driver supports Mellanox Technologies Firmware
 	  flashing common logic.

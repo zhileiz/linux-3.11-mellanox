@@ -58,6 +58,50 @@ struct ib_update_work {
 	u8                 port_num;
 };
 
+enum gid_attr_find_mask {
+	GID_ATTR_FIND_MASK_GID          = 1UL << 0,
+	GID_ATTR_FIND_MASK_NETDEV	= 1UL << 1,
+	GID_ATTR_FIND_MASK_DEFAULT	= 1UL << 2,
+	GID_ATTR_FIND_MASK_GID_TYPE	= 1UL << 3,
+};
+
+enum gid_table_entry_props {
+	GID_TABLE_ENTRY_INVALID		= 1UL << 0,
+	GID_TABLE_ENTRY_DEFAULT		= 1UL << 1,
+};
+
+struct ib_gid_table_entry {
+	unsigned long	    props;
+	union ib_gid        gid;
+	struct ib_gid_attr  attr;
+	void		   *context;
+};
+
+struct ib_gid_table {
+	int                  sz;
+	/* In RoCE, adding a GID to the table requires:
+	 * (a) Find if this GID is already exists.
+	 * (b) Find a free space.
+	 * (c) Write the new GID
+	 *
+	 * Delete requires different set of operations:
+	 * (a) Find the GID
+	 * (b) Delete it.
+	 *
+	 * Add/delete should be carried out atomically.
+	 * This is done by locking this mutex from multiple
+	 * writers. We don't need this lock for IB, as the MAD
+	 * layer replaces all entries. All data_vec entries
+	 * are locked by this lock.
+	 **/
+	struct mutex         lock;
+	/* This lock protects the table entries from being
+	 * read and written simultaneously.
+	 */
+	rwlock_t	     rwlock;
+	struct ib_gid_table_entry *data_vec;
+};
+
 static inline int start_port(struct ib_device *device)
 {
 	return (device->node_type == RDMA_NODE_IB_SWITCH) ? 0 : 1;
@@ -67,6 +111,29 @@ static inline int end_port(struct ib_device *device)
 {
 	return (device->node_type == RDMA_NODE_IB_SWITCH) ?
 		0 : device->phys_port_cnt;
+}
+
+static int __ib_cache_gid_get(struct ib_device *ib_dev, u8 port, int index,
+			      union ib_gid *gid, struct ib_gid_attr *attr)
+{
+	struct ib_gid_table *table;
+
+	table = ib_dev->cache.ports[port - rdma_start_port(ib_dev)].gid;
+
+	if (index < 0 || index >= table->sz)
+		return -EINVAL;
+
+	if (table->data_vec[index].props & GID_TABLE_ENTRY_INVALID)
+		return -EAGAIN;
+
+	memcpy(gid, &table->data_vec[index].gid, sizeof(*gid));
+	if (attr) {
+		memcpy(attr, &table->data_vec[index].attr, sizeof(*attr));
+		if (attr->ndev)
+			dev_hold(attr->ndev);
+	}
+
+	return 0;
 }
 
 int ib_get_cached_gid(struct ib_device *device,
@@ -95,6 +162,28 @@ int ib_get_cached_gid(struct ib_device *device,
 	return ret;
 }
 EXPORT_SYMBOL(ib_get_cached_gid);
+
+int ib_get_cached_gid_mlx5(struct ib_device *device,
+		      u8                port_num,
+		      int               index,
+		      union ib_gid     *gid,
+		      struct ib_gid_attr *gid_attr)
+{
+	int res;
+	unsigned long flags;
+	struct ib_gid_table *table;
+
+	if (!rdma_is_port_valid(device, port_num))
+		return -EINVAL;
+
+	table = device->cache.ports[port_num - rdma_start_port(device)].gid;
+	read_lock_irqsave(&table->rwlock, flags);
+	res = __ib_cache_gid_get(device, port_num, index, gid, gid_attr);
+	read_unlock_irqrestore(&table->rwlock, flags);
+
+	return res;
+}
+EXPORT_SYMBOL(ib_get_cached_gid_mlx5);
 
 int ib_find_cached_gid(struct ib_device *device,
 		       union ib_gid	*gid,
