@@ -86,7 +86,7 @@ retry:
 		return err;
 
 	if (fsm_state_err != MLXFW_FSM_STATE_ERR_OK) {
-		pr_err("Firmware flash failed: %s\n",
+		pr_err("Firmware flash failed??: %s\n",
 		       mlxfw_fsm_state_err_str[fsm_state_err]);
 		return -EINVAL;
 	}
