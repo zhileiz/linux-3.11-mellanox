@@ -2171,9 +2171,10 @@ struct ib_qp *mlx5_ib_create_qp(struct ib_pd *pd,
 		qp->trans_qp.xrcdn = xrcdn;
 
 		break;
-
+	/*
 	case IB_QPT_GSI:
 		return mlx5_ib_gsi_create_qp(pd, init_attr);
+	*/
 
 	case IB_QPT_RAW_IPV6:
 	case IB_QPT_RAW_ETHERTYPE:

@@ -1759,8 +1759,10 @@ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
 	case MLX5_IB_MMAP_WC_PAGE:
 /* Some architectures don't support WC memory */
 #if defined(CONFIG_X86)
+		/*
 		if (!pat_enabled)
 			return -EPERM;
+		*/
 #elif !(defined(CONFIG_PPC) || (defined(CONFIG_ARM) && defined(CONFIG_MMU)))
 			return -EPERM;
 #endif
@@ -3093,6 +3095,7 @@ out:
 
 static void destroy_umrc_res(struct mlx5_ib_dev *dev)
 {
+	/*
 	int err;
 
 	err = mlx5_mr_cache_cleanup(dev);
@@ -3102,12 +3105,14 @@ static void destroy_umrc_res(struct mlx5_ib_dev *dev)
 	mlx5_ib_destroy_qp(dev->umrc.qp);
 	ib_free_cq(dev->umrc.cq);
 	ib_dealloc_pd(dev->umrc.pd);
+	*/
 }
 
 enum {
 	MAX_UMR_WR = 128,
 };
 
+/*
 static int create_umr_res(struct mlx5_ib_dev *dev)
 {
 	struct ib_qp_init_attr *init_attr = NULL;
@@ -3215,6 +3220,7 @@ error_0:
 	kfree(init_attr);
 	return ret;
 }
+*/
 
 static u8 mlx5_get_umr_fence(u8 umr_fence_cap)
 {
@@ -3778,6 +3784,7 @@ static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
 	return num_counters;
 }
 
+/*
 static void mlx5_ib_free_rdma_netdev(struct net_device *netdev)
 {
 	return mlx5_rdma_netdev_free(netdev);
@@ -3805,6 +3812,7 @@ mlx5_ib_alloc_rdma_netdev(struct ib_device *hca,
 	}
 	return netdev;
 }
+*/
 
 static void delay_drop_debugfs_cleanup(struct mlx5_ib_dev *dev)
 {
@@ -4019,7 +4027,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
 		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_QP)	|
 		(1ull << IB_USER_VERBS_EX_CMD_MODIFY_CQ);
 
-	dev->ib_dev.query_device	= mlx5_ib_query_device;
+	dev->ib_dev.query_device_mlx5	= mlx5_ib_query_device;
 	dev->ib_dev.query_port		= mlx5_ib_query_port;
 	dev->ib_dev.get_link_layer	= mlx5_ib_port_link_layer;
 	if (ll == IB_LINK_LAYER_ETHERNET)
@@ -4035,7 +4043,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
 	dev->ib_dev.mmap		= mlx5_ib_mmap;
 	dev->ib_dev.alloc_pd		= mlx5_ib_alloc_pd;
 	dev->ib_dev.dealloc_pd		= mlx5_ib_dealloc_pd;
-	dev->ib_dev.create_ah		= mlx5_ib_create_ah;
+	dev->ib_dev.create_ah_mlx5		= mlx5_ib_create_ah;
 	dev->ib_dev.query_ah		= mlx5_ib_query_ah;
 	dev->ib_dev.destroy_ah		= mlx5_ib_destroy_ah;
 	dev->ib_dev.create_srq		= mlx5_ib_create_srq;
@@ -4049,7 +4057,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
 	dev->ib_dev.destroy_qp		= mlx5_ib_destroy_qp;
 	dev->ib_dev.post_send		= mlx5_ib_post_send;
 	dev->ib_dev.post_recv		= mlx5_ib_post_recv;
-	dev->ib_dev.create_cq		= mlx5_ib_create_cq;
+	dev->ib_dev.create_cq_mlx5		= mlx5_ib_create_cq;
 	dev->ib_dev.modify_cq		= mlx5_ib_modify_cq;
 	dev->ib_dev.resize_cq		= mlx5_ib_resize_cq;
 	dev->ib_dev.destroy_cq		= mlx5_ib_destroy_cq;
@@ -4061,15 +4069,15 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
 	dev->ib_dev.dereg_mr		= mlx5_ib_dereg_mr;
 	dev->ib_dev.attach_mcast	= mlx5_ib_mcg_attach;
 	dev->ib_dev.detach_mcast	= mlx5_ib_mcg_detach;
-	dev->ib_dev.process_mad		= mlx5_ib_process_mad;
+	dev->ib_dev.process_mad_mlx5		= mlx5_ib_process_mad;
 	dev->ib_dev.alloc_mr		= mlx5_ib_alloc_mr;
 	dev->ib_dev.map_mr_sg		= mlx5_ib_map_mr_sg;
 	dev->ib_dev.check_mr_status	= mlx5_ib_check_mr_status;
 	dev->ib_dev.get_port_immutable  = mlx5_port_immutable;
 	dev->ib_dev.get_dev_fw_str      = get_dev_fw_str;
 	dev->ib_dev.get_vector_affinity	= mlx5_ib_get_vector_affinity;
-	if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads))
-		dev->ib_dev.alloc_rdma_netdev	= mlx5_ib_alloc_rdma_netdev;
+	//if (MLX5_CAP_GEN(mdev, ipoib_enhanced_offloads))
+		//dev->ib_dev.alloc_rdma_netdev	= mlx5_ib_alloc_rdma_netdev;
 
 	if (mlx5_core_is_pf(mdev)) {
 		dev->ib_dev.get_vf_config	= mlx5_ib_get_vf_config;
@@ -4085,7 +4093,7 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
 	dev->umr_fence = mlx5_get_umr_fence(MLX5_CAP_GEN(mdev, umr_fence));
 
 	if (MLX5_CAP_GEN(mdev, imaicl)) {
-		dev->ib_dev.alloc_mw		= mlx5_ib_alloc_mw;
+		dev->ib_dev.alloc_mw_mlx5		= mlx5_ib_alloc_mw;
 		dev->ib_dev.dealloc_mw		= mlx5_ib_dealloc_mw;
 		dev->ib_dev.uverbs_cmd_mask |=
 			(1ull << IB_USER_VERBS_CMD_ALLOC_MW)	|
@@ -4175,9 +4183,11 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
 	if (err)
 		goto err_fp_bfreg;
 
+	/*
 	err = create_umr_res(dev);
 	if (err)
 		goto err_dev;
+	*/
 
 	init_delay_drop(dev);
 
